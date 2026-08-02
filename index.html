@@ -1,0 +1,496 @@
+<!DOCTYPE html>
+<html lang="no">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover" />
+<title>Handleliste</title>
+<meta name="theme-color" content="#3f7068" />
+<meta name="apple-mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+<meta name="apple-mobile-web-app-title" content="Handleliste" />
+<link rel="manifest" href="manifest.json" />
+<link rel="apple-touch-icon" href="icons/icon-192.png" />
+<link rel="icon" href="icons/icon-192.png" />
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Patrick+Hand&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --paper: #f4efe0;
+    --ink: #2e2a24;
+    --graphite: #5a564c;
+    --faint: #d9d0b4;
+    --teal: #3f7068;
+    --mustard: #cf9d2e;
+    --plum: #7a4e6d;
+    --brick: #a8452f;
+    --cream: #fbf8ef;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    min-height: 100vh;
+    background: var(--paper);
+    background-image:
+      linear-gradient(var(--faint) 1px, transparent 1px),
+      linear-gradient(90deg, var(--faint) 1px, transparent 1px);
+    background-size: 22px 22px;
+    font-family: 'Space Mono', monospace;
+    color: var(--ink);
+    display: flex;
+    justify-content: center;
+  }
+  #app {
+    width: 100%;
+    max-width: 420px;
+    min-height: 100vh;
+    background: var(--cream);
+    box-shadow: 0 0 0 3px var(--ink);
+    display: flex;
+    flex-direction: column;
+  }
+  .checker {
+    width: 100%;
+    border-top: 2px solid var(--ink);
+    border-bottom: 2px solid var(--ink);
+  }
+  header {
+    padding: 16px 20px 12px;
+    text-align: center;
+  }
+  header h1 {
+    font-family: 'Patrick Hand', cursive;
+    font-weight: 400;
+    font-size: 1.8rem;
+    margin: 0;
+  }
+  header .sub {
+    font-size: 12px;
+    color: var(--graphite);
+    margin-top: 2px;
+  }
+  .page { flex: 1; display: flex; flex-direction: column; padding: 0 20px; }
+  .row { display: flex; gap: 8px; padding-top: 16px; }
+  input[type=text] {
+    flex: 1;
+    padding: 8px 12px;
+    background: var(--paper);
+    border: 2px solid var(--ink);
+    outline: none;
+    font-size: 16px;
+    font-family: 'Space Mono', monospace;
+    color: var(--ink);
+  }
+  button {
+    cursor: pointer;
+    font-family: 'Space Mono', monospace;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.02em;
+    font-size: 13px;
+    border: 2px solid var(--ink);
+    border-radius: 3px;
+    color: var(--cream);
+    padding: 10px 16px;
+  }
+  button.plain { background: none; border: none; color: var(--brick); font-size: 11px; padding: 4px 8px; }
+  button.teal { background: var(--teal); }
+  button.brick { background: var(--brick); }
+  button.plum { background: var(--plum); }
+  button.mustard { background: var(--mustard); color: var(--ink); }
+  button.outline { background: var(--paper); color: var(--ink); }
+  ul { list-style: none; margin: 12px 0 0; padding: 0; flex: 1; overflow-y: auto; }
+  li.item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 10px 0;
+    border-bottom: 1px dashed var(--faint);
+    user-select: none;
+  }
+  .item-text {
+    font-family: 'Patrick Hand', cursive;
+    font-size: 1.5rem;
+    display: inline-block;
+    position: relative;
+  }
+  .item-text.checked { color: var(--graphite); opacity: 0.85; }
+  .item-text.checked::before,
+  .item-text.checked::after {
+    content: "";
+    position: absolute;
+    left: -3%;
+    width: 106%;
+    height: 4px;
+    background: var(--graphite);
+    border-radius: 3px;
+    mix-blend-mode: multiply;
+  }
+  .item-text.checked::before { top: 44%; transform: rotate(-1.8deg); opacity: 0.85; }
+  .item-text.checked::after { top: 56%; transform: rotate(1.4deg); opacity: 0.7; }
+  .empty { text-align: center; color: var(--graphite); margin-top: 32px; font-size: 14px; }
+  .hint { font-size: 11px; color: var(--graphite); text-align: center; padding: 4px 0 8px; }
+  .btn-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; padding: 16px 0; }
+  .btn-grid .full { grid-column: span 2; }
+  .microhint { grid-column: span 2; text-align: center; font-size: 10px; color: var(--graphite); margin-top: -6px; }
+  .modal-backdrop {
+    position: fixed; inset: 0; background: rgba(0,0,0,0.45);
+    display: flex; align-items: center; justify-content: center; padding: 24px;
+    z-index: 10;
+  }
+  .modal { background: var(--cream); max-width: 340px; width: 100%; border: 3px solid var(--ink); }
+  .modal .body { padding: 20px; }
+  .modal p { font-family: 'Patrick Hand', cursive; font-size: 1.2rem; margin: 0 0 16px; }
+  .modal .btn-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  .hidden { display: none !important; }
+  .top-row { display: flex; align-items: center; justify-content: space-between; padding: 10px 0; border-bottom: 1px dashed var(--faint); }
+  .top-row .rank { color: var(--graphite); margin-right: 8px; font-family: 'Space Mono', monospace; font-size: 13px; }
+  .top-row .count { font-size: 12px; color: #2c4f49; }
+  .footer-btn { padding: 16px 0; }
+</style>
+</head>
+<body>
+<div id="app">
+
+  <div class="checker" id="checker1" style="height:10px;"></div>
+
+  <header>
+    <h1>&#9998; Handleliste</h1>
+    <div class="sub" id="subtitle">0 varer igjen</div>
+  </header>
+
+  <div class="checker" id="checker2" style="height:8px;"></div>
+
+  <!-- SIDE: LISTE -->
+  <div class="page" id="page-liste">
+    <div class="row">
+      <input type="text" id="itemInput" placeholder="Legg til vare..." autofocus />
+      <button class="teal" id="addBtn">Legg til</button>
+    </div>
+    <ul id="itemList"></ul>
+    <div class="hint">Dobbeltrykk en vare for å streke den over.</div>
+    <div class="checker" style="height:8px;" id="checker3"></div>
+    <div class="btn-grid">
+      <button class="brick" id="resetBtn">Nullstill</button>
+      <button class="plum" id="top15Btn">Topp 15</button>
+      <button class="mustard full" id="favBtn">Legg til faste varer</button>
+      <div class="microhint">Hold inne knappen over i 2 sek. for å redigere faste varer</div>
+    </div>
+  </div>
+
+  <!-- SIDE: TOPP 15 -->
+  <div class="page hidden" id="page-top15">
+    <ol id="topList" style="list-style:none;padding:0;margin-top:16px;flex:1;overflow-y:auto;"></ol>
+    <div class="footer-btn">
+      <div class="checker" style="height:8px;"></div>
+      <button class="teal" style="width:100%;margin-top:16px;" id="backFromTop">Tilbake til listen</button>
+    </div>
+  </div>
+
+  <!-- SIDE: REDIGER FASTE VARER -->
+  <div class="page hidden" id="page-rediger">
+    <div class="row">
+      <input type="text" id="favInput" placeholder="Ny fast vare..." />
+      <button class="teal" id="addFavBtn">Legg til</button>
+    </div>
+    <ul id="favList" style="margin-top:12px;"></ul>
+    <div class="footer-btn">
+      <div class="checker" style="height:8px;"></div>
+      <button class="teal" style="width:100%;margin-top:16px;" id="backFromEdit">Ferdig</button>
+    </div>
+  </div>
+
+  <!-- MODAL: BEKREFT NULLSTILL -->
+  <div class="modal-backdrop hidden" id="confirmModal">
+    <div class="modal">
+      <div class="checker" style="height:8px;"></div>
+      <div class="body">
+        <p>Er du sikker på at du vil slette hele listen?</p>
+        <div class="btn-row">
+          <button class="outline" id="cancelReset">Avbryt</button>
+          <button class="brick" id="confirmReset">Slett</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+(function () {
+  const KEY_ITEMS = "handleliste-items";
+  const KEY_FREQ = "handleliste-frekvens";
+  const KEY_FAV = "handleliste-favoritter";
+
+  function load(key, fallback) {
+    try {
+      const raw = localStorage.getItem(key);
+      return raw ? JSON.parse(raw) : fallback;
+    } catch (e) {
+      console.error("Kunne ikke laste", key, e);
+      return fallback;
+    }
+  }
+  function save(key, value) {
+    try {
+      localStorage.setItem(key, JSON.stringify(value));
+    } catch (e) {
+      console.error("Kunne ikke lagre", key, e);
+    }
+  }
+
+  let items = load(KEY_ITEMS, []);       // [{id, name, checked}]
+  let freq = load(KEY_FREQ, {});         // { name: count }
+  let favorites = load(KEY_FAV, []);     // [name]
+
+  function uid() {
+    return Date.now().toString(36) + Math.random().toString(36).slice(2, 7);
+  }
+
+  // Checkerboard painter
+  function paintChecker(el, colorA, colorB, size) {
+    el.style.backgroundImage = `repeating-conic-gradient(${colorA} 0% 25%, ${colorB} 0% 50%)`;
+    el.style.backgroundSize = `${size}px ${size}px`;
+  }
+  document.querySelectorAll(".checker").forEach((el, i) => {
+    const pairs = [["#3f7068", "#cf9d2e"], ["#7a4e6d", "#cf9d2e"], ["#3f7068", "#7a4e6d"]];
+    const [a, b] = pairs[i % pairs.length];
+    paintChecker(el, a, b, parseInt(el.style.height) || 8);
+  });
+
+  const pages = {
+    liste: document.getElementById("page-liste"),
+    top15: document.getElementById("page-top15"),
+    rediger: document.getElementById("page-rediger"),
+  };
+  const subtitle = document.getElementById("subtitle");
+
+  function showPage(name) {
+    Object.values(pages).forEach((p) => p.classList.add("hidden"));
+    pages[name].classList.remove("hidden");
+    if (name === "liste") renderItems();
+    if (name === "top15") renderTop15();
+    if (name === "rediger") renderFavorites();
+    updateSubtitle(name);
+  }
+
+  function updateSubtitle(name) {
+    if (name === "liste") {
+      const active = items.filter((i) => !i.checked).length;
+      subtitle.textContent = `${active} varer igjen`;
+    } else if (name === "top15") {
+      subtitle.textContent = "Topp 15 mest kjøpte";
+    } else {
+      subtitle.textContent = "Rediger faste varer";
+    }
+  }
+
+  function addItem(name) {
+    const trimmed = name.trim();
+    if (!trimmed) return;
+    items.push({ id: uid(), name: trimmed, checked: false });
+    freq[trimmed] = (freq[trimmed] || 0) + 1;
+    save(KEY_ITEMS, items);
+    save(KEY_FREQ, freq);
+    renderItems();
+  }
+
+  function removeItem(id) {
+    items = items.filter((it) => it.id !== id);
+    save(KEY_ITEMS, items);
+    renderItems();
+  }
+
+  function toggleChecked(id) {
+    items = items.map((it) => (it.id === id ? { ...it, checked: !it.checked } : it));
+    save(KEY_ITEMS, items);
+    renderItems();
+  }
+
+  let lastTap = {};
+  function handleItemTap(id) {
+    const now = Date.now();
+    const last = lastTap[id] || 0;
+    if (now - last < 350) {
+      toggleChecked(id);
+      lastTap[id] = 0;
+    } else {
+      lastTap[id] = now;
+    }
+  }
+
+  function renderItems() {
+    const ul = document.getElementById("itemList");
+    ul.innerHTML = "";
+    if (items.length === 0) {
+      const li = document.createElement("li");
+      li.className = "empty";
+      li.textContent = "Listen er tom. Skriv inn en vare over.";
+      ul.appendChild(li);
+    } else {
+      items.forEach((it) => {
+        const li = document.createElement("li");
+        li.className = "item";
+        const span = document.createElement("span");
+        span.className = "item-text" + (it.checked ? " checked" : "");
+        span.textContent = it.name;
+        span.addEventListener("click", () => handleItemTap(it.id));
+        const btn = document.createElement("button");
+        btn.className = "plain";
+        btn.textContent = "fjern";
+        btn.addEventListener("click", (e) => {
+          e.stopPropagation();
+          removeItem(it.id);
+        });
+        li.appendChild(span);
+        li.appendChild(btn);
+        ul.appendChild(li);
+      });
+    }
+    updateSubtitle("liste");
+  }
+
+  function getTop15() {
+    return Object.entries(freq).sort((a, b) => b[1] - a[1]).slice(0, 15);
+  }
+
+  function renderTop15() {
+    const ol = document.getElementById("topList");
+    ol.innerHTML = "";
+    const top = getTop15();
+    if (top.length === 0) {
+      const li = document.createElement("li");
+      li.className = "empty";
+      li.textContent = "Ingen statistikk ennå. Legg til varer på listen først.";
+      ol.appendChild(li);
+      return;
+    }
+    top.forEach(([name, count], idx) => {
+      const li = document.createElement("li");
+      li.className = "top-row";
+      li.innerHTML = `<span class="item-text"><span class="rank">${idx + 1}.</span>${name}</span><span class="count">${count}x</span>`;
+      ol.appendChild(li);
+    });
+  }
+
+  function addFavoritesToList() {
+    favorites.forEach((name) => addItem(name));
+  }
+
+  function renderFavorites() {
+    const ul = document.getElementById("favList");
+    ul.innerHTML = "";
+    if (favorites.length === 0) {
+      const li = document.createElement("li");
+      li.className = "empty";
+      li.textContent = "Ingen faste varer ennå.";
+      ul.appendChild(li);
+      return;
+    }
+    favorites.forEach((name) => {
+      const li = document.createElement("li");
+      li.className = "item";
+      const span = document.createElement("span");
+      span.className = "item-text";
+      span.textContent = name;
+      const btn = document.createElement("button");
+      btn.className = "plain";
+      btn.textContent = "fjern";
+      btn.addEventListener("click", () => {
+        favorites = favorites.filter((f) => f !== name);
+        save(KEY_FAV, favorites);
+        renderFavorites();
+      });
+      li.appendChild(span);
+      li.appendChild(btn);
+      ul.appendChild(li);
+    });
+  }
+
+  // --- Events: hovedside ---
+  const itemInput = document.getElementById("itemInput");
+  document.getElementById("addBtn").addEventListener("click", () => {
+    addItem(itemInput.value);
+    itemInput.value = "";
+  });
+  itemInput.addEventListener("keydown", (e) => {
+    if (e.key === "Enter") {
+      e.preventDefault();
+      addItem(itemInput.value);
+      itemInput.value = "";
+    }
+  });
+
+  document.getElementById("resetBtn").addEventListener("click", () => {
+    document.getElementById("confirmModal").classList.remove("hidden");
+  });
+  document.getElementById("cancelReset").addEventListener("click", () => {
+    document.getElementById("confirmModal").classList.add("hidden");
+  });
+  document.getElementById("confirmReset").addEventListener("click", () => {
+    items = [];
+    save(KEY_ITEMS, items);
+    document.getElementById("confirmModal").classList.add("hidden");
+    renderItems();
+  });
+
+  document.getElementById("top15Btn").addEventListener("click", () => showPage("top15"));
+  document.getElementById("backFromTop").addEventListener("click", () => showPage("liste"));
+  document.getElementById("backFromEdit").addEventListener("click", () => showPage("liste"));
+
+  // Langtrykk (2 sek) på "Legg til faste varer"
+  const favBtn = document.getElementById("favBtn");
+  let pressTimer = null;
+  let longPressFired = false;
+  function startPress() {
+    longPressFired = false;
+    pressTimer = setTimeout(() => {
+      longPressFired = true;
+      showPage("rediger");
+    }, 2000);
+  }
+  function endPress() {
+    clearTimeout(pressTimer);
+    if (!longPressFired) addFavoritesToList();
+  }
+  function cancelPress() {
+    clearTimeout(pressTimer);
+  }
+  favBtn.addEventListener("mousedown", startPress);
+  favBtn.addEventListener("mouseup", endPress);
+  favBtn.addEventListener("mouseleave", cancelPress);
+  favBtn.addEventListener("touchstart", (e) => { startPress(); }, { passive: true });
+  favBtn.addEventListener("touchend", (e) => { endPress(); });
+
+  // --- Events: rediger faste varer ---
+  const favInput = document.getElementById("favInput");
+  function addFavorite() {
+    const trimmed = favInput.value.trim();
+    if (!trimmed) return;
+    if (!favorites.includes(trimmed)) {
+      favorites.push(trimmed);
+      save(KEY_FAV, favorites);
+    }
+    favInput.value = "";
+    renderFavorites();
+  }
+  document.getElementById("addFavBtn").addEventListener("click", addFavorite);
+  favInput.addEventListener("keydown", (e) => {
+    if (e.key === "Enter") {
+      e.preventDefault();
+      addFavorite();
+    }
+  });
+
+  // Init
+  showPage("liste");
+
+  // Registrer service worker for offline-bruk / installering
+  if ("serviceWorker" in navigator) {
+    window.addEventListener("load", () => {
+      navigator.serviceWorker.register("sw.js").catch((e) => console.error("SW-feil", e));
+    });
+  }
+})();
+</script>
+</body>
+</html>
