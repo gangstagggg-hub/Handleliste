@@ -198,6 +198,11 @@
       <button class="brick" id="resetBtn">Nullstill</button>
       <button class="plum" id="top15Btn">Topp 15</button>
     </div>
+    <div style="text-align:center; padding-bottom: 14px;">
+      <button class="outline" id="manualInstallBtn" style="font-size:11px; padding:8px 14px;">
+        &#8681; Installer som app
+      </button>
+    </div>
   </div>
 
   <!-- SIDE: TOPP 15 -->
@@ -507,6 +512,26 @@
 
   window.addEventListener("appinstalled", () => {
     installBanner.classList.add("hidden");
+  });
+
+  // Manuell knapp: alltid tilgjengelig, uansett om automatisk prompt har vist seg
+  const manualInstallBtn = document.getElementById("manualInstallBtn");
+  manualInstallBtn.addEventListener("click", async () => {
+    if (isStandalone) {
+      alert("Denne er allerede installert som app på telefonen din.");
+      return;
+    }
+    if (deferredPrompt) {
+      deferredPrompt.prompt();
+      await deferredPrompt.userChoice;
+      deferredPrompt = null;
+      return;
+    }
+    if (isIOS) {
+      alert('Trykk Del-ikonet nederst i Safari (firkant med pil opp), og velg "Legg til på Hjem-skjerm".');
+    } else {
+      alert('Trykk de tre prikkene/menyknappen øverst i nettleseren, og velg "Installer app" eller "Legg til på startskjermen".');
+    }
   });
 })();
 </script>
