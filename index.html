@@ -96,9 +96,8 @@
   button.teal { background: var(--teal); }
   button.brick { background: var(--brick); }
   button.plum { background: var(--plum); }
-  button.mustard { background: var(--mustard); color: var(--ink); }
   button.outline { background: var(--paper); color: var(--ink); }
-  ul { list-style: none; margin: 12px 0 0; padding: 0; flex: 1; overflow-y: auto; }
+  ul, ol { list-style: none; margin: 12px 0 0; padding: 0; flex: 1; overflow-y: auto; }
   li.item {
     display: flex;
     align-items: center;
@@ -129,9 +128,8 @@
   .item-text.checked::after { top: 56%; transform: rotate(1.4deg); opacity: 0.7; }
   .empty { text-align: center; color: var(--graphite); margin-top: 32px; font-size: 14px; }
   .hint { font-size: 11px; color: var(--graphite); text-align: center; padding: 4px 0 8px; }
+  .swipe-hint { font-size: 12px; color: var(--graphite); text-align: center; margin-bottom: 4px; }
   .btn-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; padding: 16px 0; }
-  .btn-grid .full { grid-column: span 2; }
-  .microhint { grid-column: span 2; text-align: center; font-size: 10px; color: var(--graphite); margin-top: -6px; }
   .modal-backdrop {
     position: fixed; inset: 0; background: rgba(0,0,0,0.45);
     display: flex; align-items: center; justify-content: center; padding: 24px;
@@ -142,9 +140,10 @@
   .modal p { font-family: 'Patrick Hand', cursive; font-size: 1.2rem; margin: 0 0 16px; }
   .modal .btn-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
   .hidden { display: none !important; }
-  .top-row { display: flex; align-items: center; justify-content: space-between; padding: 10px 0; border-bottom: 1px dashed var(--faint); }
+  .top-row { display: flex; align-items: center; justify-content: space-between; padding: 10px 4px; border-bottom: 1px dashed var(--faint); cursor: grab; transition: background 0.3s ease; }
+  .top-row.flash { background: rgba(63, 112, 104, 0.13); }
   .top-row .rank { color: var(--graphite); margin-right: 8px; font-family: 'Space Mono', monospace; font-size: 13px; }
-  .top-row .count { font-size: 12px; color: #2c4f49; }
+  .top-row .count { font-size: 12px; color: #2c4f49; font-family: 'Space Mono', monospace; }
   .footer-btn { padding: 16px 0; }
 </style>
 </head>
@@ -172,30 +171,16 @@
     <div class="btn-grid">
       <button class="brick" id="resetBtn">Nullstill</button>
       <button class="plum" id="top15Btn">Topp 15</button>
-      <button class="mustard full" id="favBtn">Legg til faste varer</button>
-      <div class="microhint">Hold inne knappen over i 2 sek. for å redigere faste varer</div>
     </div>
   </div>
 
   <!-- SIDE: TOPP 15 -->
   <div class="page hidden" id="page-top15">
-    <ol id="topList" style="list-style:none;padding:0;margin-top:16px;flex:1;overflow-y:auto;"></ol>
+    <div class="swipe-hint">Sveip en vare mot høyre for å legge den til på handlelisten.</div>
+    <ol id="topList"></ol>
     <div class="footer-btn">
       <div class="checker" style="height:8px;"></div>
       <button class="teal" style="width:100%;margin-top:16px;" id="backFromTop">Tilbake til listen</button>
-    </div>
-  </div>
-
-  <!-- SIDE: REDIGER FASTE VARER -->
-  <div class="page hidden" id="page-rediger">
-    <div class="row">
-      <input type="text" id="favInput" placeholder="Ny fast vare..." />
-      <button class="teal" id="addFavBtn">Legg til</button>
-    </div>
-    <ul id="favList" style="margin-top:12px;"></ul>
-    <div class="footer-btn">
-      <div class="checker" style="height:8px;"></div>
-      <button class="teal" style="width:100%;margin-top:16px;" id="backFromEdit">Ferdig</button>
     </div>
   </div>
 
@@ -219,7 +204,6 @@
 (function () {
   const KEY_ITEMS = "handleliste-items";
   const KEY_FREQ = "handleliste-frekvens";
-  const KEY_FAV = "handleliste-favoritter";
 
   function load(key, fallback) {
     try {
@@ -240,13 +224,11 @@
 
   let items = load(KEY_ITEMS, []);       // [{id, name, checked}]
   let freq = load(KEY_FREQ, {});         // { name: count }
-  let favorites = load(KEY_FAV, []);     // [name]
 
   function uid() {
     return Date.now().toString(36) + Math.random().toString(36).slice(2, 7);
   }
 
-  // Checkerboard painter
   function paintChecker(el, colorA, colorB, size) {
     el.style.backgroundImage = `repeating-conic-gradient(${colorA} 0% 25%, ${colorB} 0% 50%)`;
     el.style.backgroundSize = `${size}px ${size}px`;
@@ -260,7 +242,6 @@
   const pages = {
     liste: document.getElementById("page-liste"),
     top15: document.getElementById("page-top15"),
-    rediger: document.getElementById("page-rediger"),
   };
   const subtitle = document.getElementById("subtitle");
 
@@ -269,7 +250,6 @@
     pages[name].classList.remove("hidden");
     if (name === "liste") renderItems();
     if (name === "top15") renderTop15();
-    if (name === "rediger") renderFavorites();
     updateSubtitle(name);
   }
 
@@ -277,10 +257,8 @@
     if (name === "liste") {
       const active = items.filter((i) => !i.checked).length;
       subtitle.textContent = `${active} varer igjen`;
-    } else if (name === "top15") {
-      subtitle.textContent = "Topp 15 mest kjøpte";
     } else {
-      subtitle.textContent = "Rediger faste varer";
+      subtitle.textContent = "Topp 15 mest kjøpte";
     }
   }
 
@@ -353,6 +331,31 @@
     return Object.entries(freq).sort((a, b) => b[1] - a[1]).slice(0, 15);
   }
 
+  // Sveip til høyre på en topp15-vare -> legg til i handlelisten
+  let swipeStartX = {};
+  function onSwipeStart(name, e) {
+    const x = e.touches ? e.touches[0].clientX : e.clientX;
+    swipeStartX[name] = x;
+  }
+  function onSwipeEnd(name, rowEl, e) {
+    const startX = swipeStartX[name];
+    if (startX == null) return;
+    const x = e.changedTouches ? e.changedTouches[0].clientX : e.clientX;
+    const delta = x - startX;
+    swipeStartX[name] = null;
+    if (delta > 60) {
+      addItem(name);
+      rowEl.classList.add("flash");
+      const countEl = rowEl.querySelector(".count");
+      const original = countEl.textContent;
+      countEl.textContent = "lagt til ✓";
+      setTimeout(() => {
+        rowEl.classList.remove("flash");
+        countEl.textContent = original;
+      }, 500);
+    }
+  }
+
   function renderTop15() {
     const ol = document.getElementById("topList");
     ol.innerHTML = "";
@@ -368,41 +371,11 @@
       const li = document.createElement("li");
       li.className = "top-row";
       li.innerHTML = `<span class="item-text"><span class="rank">${idx + 1}.</span>${name}</span><span class="count">${count}x</span>`;
+      li.addEventListener("touchstart", (e) => onSwipeStart(name, e), { passive: true });
+      li.addEventListener("touchend", (e) => onSwipeEnd(name, li, e));
+      li.addEventListener("mousedown", (e) => onSwipeStart(name, e));
+      li.addEventListener("mouseup", (e) => onSwipeEnd(name, li, e));
       ol.appendChild(li);
-    });
-  }
-
-  function addFavoritesToList() {
-    favorites.forEach((name) => addItem(name));
-  }
-
-  function renderFavorites() {
-    const ul = document.getElementById("favList");
-    ul.innerHTML = "";
-    if (favorites.length === 0) {
-      const li = document.createElement("li");
-      li.className = "empty";
-      li.textContent = "Ingen faste varer ennå.";
-      ul.appendChild(li);
-      return;
-    }
-    favorites.forEach((name) => {
-      const li = document.createElement("li");
-      li.className = "item";
-      const span = document.createElement("span");
-      span.className = "item-text";
-      span.textContent = name;
-      const btn = document.createElement("button");
-      btn.className = "plain";
-      btn.textContent = "fjern";
-      btn.addEventListener("click", () => {
-        favorites = favorites.filter((f) => f !== name);
-        save(KEY_FAV, favorites);
-        renderFavorites();
-      });
-      li.appendChild(span);
-      li.appendChild(btn);
-      ul.appendChild(li);
     });
   }
 
@@ -435,56 +408,10 @@
 
   document.getElementById("top15Btn").addEventListener("click", () => showPage("top15"));
   document.getElementById("backFromTop").addEventListener("click", () => showPage("liste"));
-  document.getElementById("backFromEdit").addEventListener("click", () => showPage("liste"));
-
-  // Langtrykk (2 sek) på "Legg til faste varer"
-  const favBtn = document.getElementById("favBtn");
-  let pressTimer = null;
-  let longPressFired = false;
-  function startPress() {
-    longPressFired = false;
-    pressTimer = setTimeout(() => {
-      longPressFired = true;
-      showPage("rediger");
-    }, 2000);
-  }
-  function endPress() {
-    clearTimeout(pressTimer);
-    if (!longPressFired) addFavoritesToList();
-  }
-  function cancelPress() {
-    clearTimeout(pressTimer);
-  }
-  favBtn.addEventListener("mousedown", startPress);
-  favBtn.addEventListener("mouseup", endPress);
-  favBtn.addEventListener("mouseleave", cancelPress);
-  favBtn.addEventListener("touchstart", (e) => { startPress(); }, { passive: true });
-  favBtn.addEventListener("touchend", (e) => { endPress(); });
-
-  // --- Events: rediger faste varer ---
-  const favInput = document.getElementById("favInput");
-  function addFavorite() {
-    const trimmed = favInput.value.trim();
-    if (!trimmed) return;
-    if (!favorites.includes(trimmed)) {
-      favorites.push(trimmed);
-      save(KEY_FAV, favorites);
-    }
-    favInput.value = "";
-    renderFavorites();
-  }
-  document.getElementById("addFavBtn").addEventListener("click", addFavorite);
-  favInput.addEventListener("keydown", (e) => {
-    if (e.key === "Enter") {
-      e.preventDefault();
-      addFavorite();
-    }
-  });
 
   // Init
   showPage("liste");
 
-  // Registrer service worker for offline-bruk / installering
   if ("serviceWorker" in navigator) {
     window.addEventListener("load", () => {
       navigator.serviceWorker.register("sw.js").catch((e) => console.error("SW-feil", e));
