@@ -1,539 +1,964 @@
 <!DOCTYPE html>
-<html lang="no">
+<html lang="en">
 <head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover" />
-<title>Handleliste</title>
-<meta name="theme-color" content="#3f7068" />
-<meta name="apple-mobile-web-app-capable" content="yes" />
-<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
-<meta name="apple-mobile-web-app-title" content="Handleliste" />
-<link rel="manifest" href="manifest.json" />
-<link rel="apple-touch-icon" href="icons/icon-192.png" />
-<link rel="icon" href="icons/icon-192.png" />
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Timesheet — Wage Counter</title>
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#161b22">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Wage Counter">
+<link rel="apple-touch-icon" href="icon-192.png">
+<link rel="icon" href="icon-192.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Patrick+Hand&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Oswald:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600;700&family=Work+Sans:wght@400;500;600&display=swap" rel="stylesheet">
 <style>
-  :root {
-    --paper: #f4efe0;
-    --ink: #2e2a24;
-    --graphite: #5a564c;
-    --faint: #d9d0b4;
-    --teal: #3f7068;
-    --mustard: #cf9d2e;
-    --plum: #7a4e6d;
-    --brick: #a8452f;
-    --cream: #fbf8ef;
+  :root{
+    --bg: #161b22;
+    --bg-vignette: #0f1319;
+    --paper: #efe9db;
+    --paper-2: #e5ddc8;
+    --ink: #24261f;
+    --ink-soft: #5b5c4e;
+    --brass: #c69a2b;
+    --brass-soft: #ddc27a;
+    --amber: #e08a2e;
+    --rust: #c04a32;
+    --muted: #8b93a1;
+    --line: rgba(36,38,31,0.14);
   }
-  * { box-sizing: border-box; }
-  body {
-    margin: 0;
-    min-height: 100vh;
-    background: var(--paper);
-    background-image:
-      linear-gradient(var(--faint) 1px, transparent 1px),
-      linear-gradient(90deg, var(--faint) 1px, transparent 1px);
-    background-size: 22px 22px;
-    font-family: 'Space Mono', monospace;
-    color: var(--ink);
-    display: flex;
-    justify-content: center;
+
+  *{ box-sizing: border-box; }
+
+  html,body{
+    margin:0; padding:0;
+    min-height:100vh;
+    background:
+      radial-gradient(ellipse at 50% -10%, #232b38 0%, var(--bg) 45%, var(--bg-vignette) 100%);
+    font-family: 'Work Sans', sans-serif;
+    color: var(--paper);
+    -webkit-font-smoothing: antialiased;
   }
-  #app {
-    width: 100%;
-    max-width: 420px;
-    min-height: 100vh;
-    background: var(--cream);
-    box-shadow: 0 0 0 3px var(--ink);
-    display: flex;
-    flex-direction: column;
+
+  body{
+    display:flex;
+    align-items:flex-start;
+    justify-content:center;
+    padding: 48px 18px 80px;
   }
-  .checker {
-    width: 100%;
-    border-top: 2px solid var(--ink);
-    border-bottom: 2px solid var(--ink);
-  }
-  header {
-    padding: 16px 20px 12px;
-    text-align: center;
-  }
-  header h1 {
-    font-family: 'Patrick Hand', cursive;
-    font-weight: 400;
-    font-size: 1.8rem;
-    margin: 0;
-  }
-  header .sub {
-    font-size: 12px;
-    color: var(--graphite);
-    margin-top: 2px;
-  }
-  .page { flex: 1; display: flex; flex-direction: column; padding: 0 20px; }
-  .row { display: flex; gap: 8px; padding-top: 16px; }
-  input[type=text] {
-    flex: 1;
-    padding: 8px 12px;
-    background: var(--paper);
-    border: 2px solid var(--ink);
-    outline: none;
-    font-size: 16px;
-    font-family: 'Space Mono', monospace;
-    color: var(--ink);
-  }
-  button {
-    cursor: pointer;
-    font-family: 'Space Mono', monospace;
-    font-weight: 700;
+
+  .wrap{ width:100%; max-width: 640px; }
+
+  .eyebrow{
+    font-family:'Oswald', sans-serif;
+    font-weight:600;
+    letter-spacing: 0.32em;
     text-transform: uppercase;
-    letter-spacing: 0.02em;
-    font-size: 13px;
-    border: 2px solid var(--ink);
-    border-radius: 3px;
-    color: var(--cream);
-    padding: 10px 16px;
+    font-size: 12.5px;
+    color: var(--brass-soft);
+    text-align:center;
+    margin: 0 0 6px;
   }
-  button.plain { background: none; border: none; color: var(--brick); font-size: 11px; padding: 4px 8px; }
-  button.teal { background: var(--teal); }
-  button.brick { background: var(--brick); }
-  button.plum { background: var(--plum); }
-  button.outline { background: var(--paper); color: var(--ink); }
-  ul, ol { list-style: none; margin: 12px 0 0; padding: 0; flex: 1; overflow-y: auto; }
-  li.item {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    padding: 10px 0;
-    border-bottom: 1px dashed var(--faint);
-    user-select: none;
+
+  h1{
+    font-family:'Oswald', sans-serif;
+    font-weight:700;
+    font-size: clamp(28px, 5.5vw, 40px);
+    text-align:center;
+    letter-spacing: 0.01em;
+    margin: 0 0 34px;
+    color: #f2eee2;
   }
-  .item-text {
-    font-family: 'Patrick Hand', cursive;
-    font-size: 1.5rem;
-    display: inline-block;
+
+  .card{
+    background: linear-gradient(180deg, var(--paper) 0%, var(--paper-2) 100%);
+    color: var(--ink);
+    border-radius: 14px;
+    padding: 34px clamp(20px, 5vw, 42px) 30px;
+    box-shadow:
+      0 30px 60px -20px rgba(0,0,0,0.55),
+      0 2px 0 rgba(255,255,255,0.05) inset;
     position: relative;
+    overflow: hidden;
   }
-  .item-text.checked { color: var(--graphite); opacity: 0.85; }
-  .item-text.checked::before,
-  .item-text.checked::after {
-    content: "";
-    position: absolute;
-    left: -3%;
-    width: 106%;
-    height: 4px;
-    background: var(--graphite);
-    border-radius: 3px;
-    mix-blend-mode: multiply;
+
+  .card::before{
+    content:"";
+    position:absolute; top:0; left:0; right:0; height:6px;
+    background: repeating-linear-gradient(90deg, var(--brass) 0 18px, var(--ink) 18px 20px);
+    opacity:0.85;
   }
-  .item-text.checked::before { top: 44%; transform: rotate(-1.8deg); opacity: 0.85; }
-  .item-text.checked::after { top: 56%; transform: rotate(1.4deg); opacity: 0.7; }
-  .empty { text-align: center; color: var(--graphite); margin-top: 32px; font-size: 14px; }
-  .hint { font-size: 11px; color: var(--graphite); text-align: center; padding: 4px 0 8px; }
-  .swipe-hint { font-size: 12px; color: var(--graphite); text-align: center; margin-bottom: 4px; }
-  .btn-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; padding: 16px 0; }
-  .modal-backdrop {
-    position: fixed; inset: 0; background: rgba(0,0,0,0.45);
-    display: flex; align-items: center; justify-content: center; padding: 24px;
-    z-index: 10;
+
+  .punch{
+    position:absolute; top:16px; right:18px;
+    font-family:'IBM Plex Mono', monospace;
+    font-size:10.5px;
+    color: var(--ink-soft);
+    letter-spacing: 0.08em;
+    text-align:right;
   }
-  .modal { background: var(--cream); max-width: 340px; width: 100%; border: 3px solid var(--ink); }
-  .modal .body { padding: 20px; }
-  .modal p { font-family: 'Patrick Hand', cursive; font-size: 1.2rem; margin: 0 0 16px; }
-  .modal .btn-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
-  .hidden { display: none !important; }
-  .top-row { display: flex; align-items: center; justify-content: space-between; padding: 10px 4px; border-bottom: 1px dashed var(--faint); cursor: grab; transition: background 0.3s ease; }
-  .top-row.flash { background: rgba(63, 112, 104, 0.13); }
-  .top-row .rank { color: var(--graphite); margin-right: 8px; font-family: 'Space Mono', monospace; font-size: 13px; }
-  .top-row .count { font-size: 12px; color: #2c4f49; font-family: 'Space Mono', monospace; }
-  .footer-btn { padding: 16px 0; }
-  .install-banner {
-    position: sticky;
-    bottom: 0;
-    left: 0;
-    right: 0;
+  .punch span{ display:block; }
+
+  .hero{
+    text-align:center;
+    padding: 8px 0 26px;
+    border-bottom: 1px dashed var(--line);
+    margin-bottom: 24px;
+  }
+
+  .hero-label{
+    font-family:'Oswald', sans-serif;
+    text-transform:uppercase;
+    letter-spacing:0.22em;
+    font-size:12px;
+    color: var(--ink-soft);
+    margin-bottom: 10px;
+  }
+
+  .kr-display{
+    font-family:'IBM Plex Mono', monospace;
+    font-weight:700;
+    font-size: clamp(38px, 9vw, 58px);
+    line-height:1;
+    letter-spacing: -0.01em;
+    color: var(--ink);
+    font-variant-numeric: tabular-nums;
+  }
+  .kr-display .oere{ font-size: 0.5em; color: var(--ink-soft); }
+
+  .hero-sub{
+    margin-top: 10px;
+    font-family:'IBM Plex Mono', monospace;
+    font-size: 13.5px;
+    color: var(--ink-soft);
+  }
+  .hero-sub b{ color: var(--rust); font-weight:600; }
+
+  .row{
+    display:flex; gap: 14px; flex-wrap: wrap;
+    margin-bottom: 22px;
+  }
+  .field{ flex: 1 1 200px; }
+
+  label{
+    display:block;
+    font-family:'Oswald', sans-serif;
+    font-size: 11.5px;
+    text-transform: uppercase;
+    letter-spacing: 0.15em;
+    color: var(--ink-soft);
+    margin-bottom: 7px;
+  }
+
+  input[type="number"], input[type="datetime-local"]{
+    width: 100%;
+    font-family:'IBM Plex Mono', monospace;
+    font-size: 15px;
+    padding: 11px 12px;
+    border-radius: 7px;
+    border: 1.5px solid rgba(36,38,31,0.22);
+    background: #fbf9f3;
+    color: var(--ink);
+    outline: none;
+    transition: border-color .15s ease, box-shadow .15s ease;
+  }
+  input:focus{
+    border-color: var(--brass);
+    box-shadow: 0 0 0 3px rgba(198,154,43,0.22);
+  }
+
+  .btnrow{ display:flex; align-items:flex-end; }
+
+  button{
+    width:100%;
+    font-family:'Oswald', sans-serif;
+    font-weight:600;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    font-size: 13.5px;
+    padding: 12.5px 16px;
+    border-radius: 7px;
+    border: none;
+    cursor: pointer;
     background: var(--ink);
-    color: var(--cream);
-    padding: 12px 16px;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 10px;
-    border-top: 3px solid var(--mustard);
-    font-family: 'Space Mono', monospace;
-    font-size: 12px;
-    z-index: 20;
+    color: var(--paper);
+    transition: transform .12s ease, background .15s ease;
   }
-  .install-banner span { flex: 1; line-height: 1.4; }
-  .install-banner .actions { display: flex; gap: 6px; flex-shrink: 0; }
-  .install-banner button {
-    padding: 7px 10px;
+  button:hover{ background:#3a3c30; }
+  button:active{ transform: scale(0.97); }
+  button:focus-visible{ outline: 3px solid var(--brass); outline-offset:2px; }
+
+  button.btn-pause{ background: var(--amber); color: var(--ink); }
+  button.btn-pause:hover{ background:#c97a1f; }
+  button.btn-pause.is-paused{ background: var(--rust); color: var(--paper); }
+  button.btn-pause.is-paused:hover{ background:#a63d28; }
+
+  button.btn-stop{ background: var(--rust); color: var(--paper); }
+  button.btn-stop:hover{ background:#a63d28; }
+
+  button.btn-reset-mode{ background: var(--rust); color: var(--paper); }
+  button.btn-reset-mode:hover{ background:#a63d28; }
+
+  .total-bar{
+    display:flex; align-items:baseline; justify-content:center; gap: 10px;
+    margin-top: 20px;
+    font-family:'IBM Plex Mono', monospace;
+    font-size: 13px;
+    color: var(--muted);
+  }
+  .total-bar .total-label{ letter-spacing:0.04em; }
+  .total-bar .total-value{ color:#ddc27a; font-weight:600; font-size: 15px; }
+  .total-reset{
+    width:auto; padding: 3px 11px; font-size: 10.5px;
+    background: transparent; border: 1px solid rgba(139,147,161,0.4); color: var(--muted);
+    text-transform: uppercase; letter-spacing: 0.08em;
+  }
+  .total-reset:hover{ background: rgba(139,147,161,0.15); }
+
+  .modal-overlay{
+    display:none; position:fixed; inset:0; background: rgba(15,19,25,0.72);
+    align-items:center; justify-content:center; padding: 20px; z-index: 60;
+  }
+  .modal-overlay.show{ display:flex; }
+  .modal-box{
+    background: linear-gradient(180deg, var(--paper) 0%, var(--paper-2) 100%);
+    color: var(--ink); border-radius: 14px; padding: 26px 24px; max-width: 380px; width:100%;
+    box-shadow: 0 30px 60px -20px rgba(0,0,0,0.6);
+  }
+  .modal-box h3{ font-family:'Oswald', sans-serif; margin:0 0 10px; font-size:18px; }
+  .modal-box p{ font-size:13.5px; color: var(--ink-soft); margin: 0 0 20px; line-height:1.5; }
+  .modal-actions{ display:flex; flex-direction:column; gap:8px; }
+  .modal-actions button{ width:100%; }
+  .modal-cancel{
+    background:none; color:var(--ink-soft); text-decoration:underline;
+    font-weight:400; text-transform:none; letter-spacing:0; padding:6px;
+  }
+  .modal-cancel:hover{ background:none; color: var(--ink); }
+
+  .row.btnrow-outer{ margin-bottom: 22px; }
+  .row.btnrow-outer .field{ flex: 1 1 160px; }
+
+  .section-label{
+    font-family:'Oswald', sans-serif;
+    text-transform:uppercase;
+    letter-spacing:0.18em;
+    font-size:11px;
+    color: var(--ink-soft);
+    margin: 2px 0 10px;
+  }
+
+  .planned{
+    text-align:center;
+    padding: 14px 16px;
+    margin-bottom: 22px;
+    border-radius: 10px;
+    background: rgba(198,154,43,0.10);
+    border: 1.5px dashed rgba(198,154,43,0.5);
+  }
+  .planned .hero-label{ margin-bottom: 6px; }
+  .planned .kr-display{ font-size: clamp(24px, 6vw, 34px); }
+  .planned .hero-sub{ margin-top: 6px; }
+
+  .paused-flag{
+    display:inline-block;
+    margin-left: 8px;
+    color: var(--rust);
+    font-weight: 700;
+  }
+
+  .timeline-wrap{ margin: 26px 0 22px; }
+  .timeline-label{
+    display:flex; justify-content:space-between;
+    font-family:'Oswald', sans-serif;
+    font-size: 11px; letter-spacing:0.12em; text-transform:uppercase;
+    color: var(--ink-soft);
+    margin-bottom: 8px;
+  }
+
+  .timeline{
+    position:relative;
+    height: 34px;
+    border-radius: 6px;
+    background: repeating-linear-gradient(45deg, #ddd5bf 0 6px, #e6dfcb 6px 12px);
+    border: 1.5px solid rgba(36,38,31,0.18);
+    overflow: hidden;
+    display:flex;
+  }
+  .seg{
+    height:100%;
+    position:relative;
+    min-width: 2px;
+    transition: width .4s ease;
+  }
+  .seg.n{ background: linear-gradient(180deg, var(--brass-soft), var(--brass)); }
+  .seg.h50{ background: linear-gradient(180deg, #f0ab5d, var(--amber)); }
+  .seg.h100{ background: linear-gradient(180deg, #d97158, var(--rust)); }
+
+  .now-marker{
+    position:absolute; top:-5px; bottom:-5px;
+    width: 2px; background: var(--ink);
+    left: 100%;
+  }
+  .now-marker::after{
+    content:"NOW";
+    position:absolute; top:-19px; left:50%; transform:translateX(-50%);
+    font-family:'IBM Plex Mono', monospace;
+    font-size: 9.5px; font-weight:700;
+    letter-spacing:0.05em;
+    color: var(--ink-soft);
+  }
+  .now-marker::before{
+    content:"";
+    position:absolute; top:-4px; left:50%; transform:translateX(-50%);
+    width:6px; height:6px; border-radius:50%;
+    background: var(--rust);
+    box-shadow: 0 0 0 3px rgba(192,74,50,0.25);
+  }
+
+  .legend{
+    display:flex; gap: 18px; flex-wrap:wrap;
+    margin-top: 10px;
+    font-family:'IBM Plex Mono', monospace;
+    font-size: 11.5px;
+    color: var(--ink-soft);
+  }
+  .legend span{ display:inline-flex; align-items:center; gap:6px; }
+  .dot{ width:9px; height:9px; border-radius:2px; display:inline-block; }
+  .dot.n{ background: var(--brass); }
+  .dot.h50{ background: var(--amber); }
+  .dot.h100{ background: var(--rust); }
+
+  .breakdown{
+    display:grid;
+    grid-template-columns: 1fr auto auto;
+    gap: 6px 14px;
+    font-family:'IBM Plex Mono', monospace;
+    font-size: 14px;
+  }
+  .breakdown .head{
+    font-family:'Oswald', sans-serif;
+    font-size: 10.5px;
+    text-transform:uppercase;
+    letter-spacing:0.14em;
+    color: var(--ink-soft);
+    padding-bottom: 5px;
+    border-bottom: 1px solid var(--line);
+  }
+  .breakdown .rate-label{ display:flex; align-items:center; gap:8px; }
+  .breakdown .val-kr{ text-align:right; font-weight:600; }
+  .breakdown .val-t{ text-align:right; color: var(--ink-soft); }
+  .breakdown .tot{ border-top: 1.5px solid var(--ink); margin-top:4px; padding-top:8px; font-weight:700; }
+
+  .hint{
+    margin-top: 20px;
+    font-size: 12.5px;
+    color: var(--ink-soft);
+    line-height:1.5;
+    text-align:center;
+  }
+
+  footer{
+    text-align:center;
+    margin-top: 22px;
+    font-family:'IBM Plex Mono', monospace;
     font-size: 11px;
-    border-radius: 3px;
+    color: var(--muted);
+    letter-spacing: 0.04em;
   }
-  .install-banner button.install-yes { background: var(--mustard); color: var(--ink); border-color: var(--mustard); }
-  .install-banner button.install-no { background: none; border: 1px solid var(--cream); color: var(--cream); }
+
+  .install-banner{
+    display:none;
+    align-items:center;
+    justify-content:space-between;
+    gap: 14px;
+    background: linear-gradient(180deg, var(--paper) 0%, var(--paper-2) 100%);
+    color: var(--ink);
+    border-radius: 12px;
+    padding: 14px 18px;
+    margin-bottom: 22px;
+    box-shadow: 0 12px 30px -12px rgba(0,0,0,0.4);
+  }
+  .install-banner.show{ display:flex; }
+  .install-banner p{
+    margin:0;
+    font-size: 13.5px;
+    line-height:1.4;
+  }
+  .install-banner strong{ display:block; font-family:'Oswald', sans-serif; font-size:13px; text-transform:uppercase; letter-spacing:0.08em; margin-bottom:2px; }
+  .install-banner button{
+    flex-shrink:0;
+    width:auto;
+    padding: 10px 18px;
+    font-size:12.5px;
+  }
+  .install-dismiss{
+    background:none; border:none; color: var(--ink-soft);
+    font-size: 18px; line-height:1; cursor:pointer; padding: 0 4px; width:auto;
+  }
+
+  @media (prefers-reduced-motion: reduce){
+    .seg{ transition:none; }
+  }
 </style>
 </head>
 <body>
-<div id="app">
+<div class="wrap">
+  <p class="eyebrow">Timesheet</p>
+  <h1>Wage Counter</h1>
 
-  <div class="checker" id="checker1" style="height:10px;"></div>
+  <div class="install-banner" id="installBanner">
+    <p><strong>Install this app</strong>Get a full-screen app with no browser bar, and offline access.</p>
+    <button id="installBtn">Install</button>
+    <button class="install-dismiss" id="installDismiss" aria-label="Dismiss">✕</button>
+  </div>
 
-  <header>
-    <h1>&#9998; Handleliste</h1>
-    <div class="sub" id="subtitle">0 varer igjen</div>
-  </header>
+  <div class="card">
+    <div class="punch"><span id="punchDate">—</span><span id="punchClock">—</span></div>
 
-  <div class="checker" id="checker2" style="height:8px;"></div>
+    <div class="hero">
+      <div class="hero-label">Earned since start</div>
+      <div class="kr-display"><span id="krWhole">0</span><span class="oere">,<span id="krOere">00</span></span></div>
+      <div class="hero-sub" id="heroSub">Set hourly wage and start time to begin</div>
+    </div>
 
-  <!-- SIDE: LISTE -->
-  <div class="page" id="page-liste">
     <div class="row">
-      <input type="text" id="itemInput" placeholder="Legg til vare..." autofocus />
-      <button class="teal" id="addBtn">Legg til</button>
-    </div>
-    <ul id="itemList"></ul>
-    <div class="hint">Dobbeltrykk en vare for å streke den over.</div>
-    <div class="checker" style="height:8px;" id="checker3"></div>
-    <div class="btn-grid">
-      <button class="brick" id="resetBtn">Nullstill</button>
-      <button class="plum" id="top15Btn">Topp 15</button>
-    </div>
-    <div style="text-align:center; padding-bottom: 14px;">
-      <button class="outline" id="manualInstallBtn" style="font-size:11px; padding:8px 14px;">
-        &#8681; Installer som app
-      </button>
-    </div>
-  </div>
-
-  <!-- SIDE: TOPP 15 -->
-  <div class="page hidden" id="page-top15">
-    <div class="swipe-hint">Sveip en vare mot høyre for å legge den til på handlelisten.</div>
-    <ol id="topList"></ol>
-    <div class="footer-btn">
-      <div class="checker" style="height:8px;"></div>
-      <button class="teal" style="width:100%;margin-top:16px;" id="backFromTop">Tilbake til listen</button>
-    </div>
-  </div>
-
-  <!-- MODAL: BEKREFT NULLSTILL -->
-  <div class="modal-backdrop hidden" id="confirmModal">
-    <div class="modal">
-      <div class="checker" style="height:8px;"></div>
-      <div class="body">
-        <p>Er du sikker på at du vil slette hele listen?</p>
-        <div class="btn-row">
-          <button class="outline" id="cancelReset">Avbryt</button>
-          <button class="brick" id="confirmReset">Slett</button>
-        </div>
+      <div class="field">
+        <label for="wage">Hourly wage</label>
+        <input type="number" id="wage" min="0" step="0.01" placeholder="e.g. 350.00" value="">
+      </div>
+      <div class="field">
+        <label for="startInput">Start time</label>
+        <input type="datetime-local" id="startInput">
+      </div>
+      <div class="field">
+        <label for="endInput">Planned end time</label>
+        <input type="datetime-local" id="endInput">
       </div>
     </div>
+
+    <div class="row btnrow-outer">
+      <div class="field btnrow">
+        <button id="startBtn">Start now</button>
+      </div>
+      <div class="field btnrow">
+        <button id="pauseBtn" class="btn-pause">Pause</button>
+      </div>
+      <div class="field btnrow">
+        <button id="stopBtn" class="btn-stop">Stop</button>
+      </div>
+    </div>
+
+    <div class="section-label">Overtime rules</div>
+    <div class="row">
+      <div class="field">
+        <label for="ot1Hours">Overtime 1 starts after (hours)</label>
+        <input type="number" id="ot1Hours" min="0" step="0.25" placeholder="e.g. 8" value="">
+      </div>
+      <div class="field">
+        <label for="ot1Pct">Overtime 1 rate (%)</label>
+        <input type="number" id="ot1Pct" min="0" step="1" placeholder="e.g. 50" value="">
+      </div>
+    </div>
+    <div class="row">
+      <div class="field">
+        <label for="ot2Hours">Overtime 2 starts after (hours)</label>
+        <input type="number" id="ot2Hours" min="0" step="0.25" placeholder="e.g. 12" value="">
+      </div>
+      <div class="field">
+        <label for="ot2Pct">Overtime 2 rate (%)</label>
+        <input type="number" id="ot2Pct" min="0" step="1" placeholder="e.g. 100" value="">
+      </div>
+    </div>
+
+    <div class="planned" id="plannedBox" style="display:none;">
+      <div class="hero-label">Planned pay until end time</div>
+      <div class="kr-display"><span id="krPlannedWhole">0</span><span class="oere">,<span id="krPlannedOere">00</span></span></div>
+      <div class="hero-sub" id="plannedSub"></div>
+    </div>
+
+    <div class="timeline-wrap">
+      <div class="timeline-label"><span>Start</span><span id="elapsedLabel">0h 00m</span></div>
+      <div class="timeline" id="timeline">
+        <div class="now-marker" id="nowMarker"></div>
+      </div>
+      <div class="legend">
+        <span><i class="dot n"></i>Normal (100%)</span>
+        <span><i class="dot h50"></i><span id="legendOt1Label">Overtime 1 (50%)</span></span>
+        <span><i class="dot h100"></i><span id="legendOt2Label">Overtime 2 (100%)</span></span>
+      </div>
+    </div>
+
+    <div class="breakdown">
+      <div class="head">Rate</div>
+      <div class="head" style="text-align:right;">Hours</div>
+      <div class="head" style="text-align:right;">Amount</div>
+
+      <div class="rate-label"><i class="dot n"></i>Normal</div>
+      <div class="val-t" id="tN">0h 00m</div>
+      <div class="val-kr" id="krN">0</div>
+
+      <div class="rate-label"><i class="dot h50"></i><span id="rateOt1Label">Overtime 1</span></div>
+      <div class="val-t" id="t50">0h 00m</div>
+      <div class="val-kr" id="kr50">0</div>
+
+      <div class="rate-label"><i class="dot h100"></i><span id="rateOt2Label">Overtime 2</span></div>
+      <div class="val-t" id="t100">0h 00m</div>
+      <div class="val-kr" id="kr100">0</div>
+
+      <div class="rate-label tot">Total</div>
+      <div class="val-t tot" id="tTot">0h 00m</div>
+      <div class="val-kr tot" id="krTot">0</div>
+    </div>
+
+    <p class="hint" id="hintText">Overtime rates apply after the hours you set above. Leave a field blank to skip that overtime tier.</p>
   </div>
 
-  <div class="install-banner hidden" id="installBanner">
-    <span id="installText">Installer Handleliste som app på telefonen din?</span>
-    <div class="actions">
-      <button class="install-yes" id="installBtn">Installer</button>
-      <button class="install-no" id="installDismiss">Ikke nå</button>
+  <footer>Updates automatically · change the start time anytime</footer>
+
+  <div class="total-bar">
+    <span class="total-label">Saved total:</span>
+    <span class="total-value" id="totalValue">0</span>
+    <button class="total-reset" id="resetTotalBtn">Reset</button>
+  </div>
+</div>
+
+<div class="modal-overlay" id="stopModal">
+  <div class="modal-box">
+    <h3>Stop this session?</h3>
+    <p>Save this session's earnings to your saved total before stopping?</p>
+    <div class="modal-actions">
+      <button id="stopSaveBtn">Save &amp; stop</button>
+      <button id="stopDiscardBtn" class="btn-stop">Discard &amp; stop</button>
+      <button id="stopCancelBtn" class="modal-cancel">Cancel</button>
     </div>
   </div>
-
 </div>
 
 <script>
-(function () {
-  const KEY_ITEMS = "handleliste-items";
-  const KEY_FREQ = "handleliste-frekvens";
+  // --- Storage (localStorage) ---
+  const STORAGE_KEY = 'wage-counter-state-v2';
+  const TOTAL_STORAGE_KEY = 'wage-counter-saved-total-v1';
 
-  function load(key, fallback) {
-    try {
-      const raw = localStorage.getItem(key);
-      return raw ? JSON.parse(raw) : fallback;
-    } catch (e) {
-      console.error("Kunne ikke laste", key, e);
-      return fallback;
+  let savedTotal = 0;
+  function loadSavedTotal(){
+    try{
+      const raw = localStorage.getItem(TOTAL_STORAGE_KEY);
+      savedTotal = raw ? (parseFloat(raw) || 0) : 0;
+    }catch(e){ savedTotal = 0; }
+  }
+  function persistSavedTotal(){
+    try{ localStorage.setItem(TOTAL_STORAGE_KEY, String(savedTotal)); }catch(e){ /* ignore */ }
+  }
+  function renderSavedTotal(){
+    document.getElementById('totalValue').textContent = savedTotal.toLocaleString('en-GB', {minimumFractionDigits:2, maximumFractionDigits:2});
+  }
+
+  function saveState(){
+    try{
+      localStorage.setItem(STORAGE_KEY, JSON.stringify({
+        wage: wageInput.value,
+        start: startInput.value,
+        end: endInput.value,
+        ot1Hours: ot1HoursInput.value,
+        ot1Pct: ot1PctInput.value,
+        ot2Hours: ot2HoursInput.value,
+        ot2Pct: ot2PctInput.value,
+        isPaused,
+        pausedAt: pausedAt ? pausedAt.toISOString() : null,
+        totalPausedMs
+      }));
+    }catch(e){ /* storage unavailable, ignore */ }
+  }
+
+  function loadState(){
+    try{
+      const raw = localStorage.getItem(STORAGE_KEY);
+      if(!raw) return false;
+      const s = JSON.parse(raw);
+      if(s.wage) wageInput.value = s.wage;
+      if(s.start) startInput.value = s.start;
+      if(s.end) endInput.value = s.end;
+      if(s.ot1Hours !== undefined && s.ot1Hours !== '') ot1HoursInput.value = s.ot1Hours;
+      if(s.ot1Pct !== undefined && s.ot1Pct !== '') ot1PctInput.value = s.ot1Pct;
+      if(s.ot2Hours !== undefined && s.ot2Hours !== '') ot2HoursInput.value = s.ot2Hours;
+      if(s.ot2Pct !== undefined && s.ot2Pct !== '') ot2PctInput.value = s.ot2Pct;
+      isPaused = !!s.isPaused;
+      pausedAt = s.pausedAt ? new Date(s.pausedAt) : null;
+      totalPausedMs = s.totalPausedMs || 0;
+      return true;
+    }catch(e){ return false; }
+  }
+
+  const wageInput = document.getElementById('wage');
+  const startInput = document.getElementById('startInput');
+  const endInput = document.getElementById('endInput');
+  const startBtn = document.getElementById('startBtn');
+  const pauseBtn = document.getElementById('pauseBtn');
+  const stopBtn = document.getElementById('stopBtn');
+  const stopModal = document.getElementById('stopModal');
+  const stopSaveBtn = document.getElementById('stopSaveBtn');
+  const stopDiscardBtn = document.getElementById('stopDiscardBtn');
+  const stopCancelBtn = document.getElementById('stopCancelBtn');
+  const resetTotalBtn = document.getElementById('resetTotalBtn');
+  const ot1HoursInput = document.getElementById('ot1Hours');
+  const ot1PctInput = document.getElementById('ot1Pct');
+  const ot2HoursInput = document.getElementById('ot2Hours');
+  const ot2PctInput = document.getElementById('ot2Pct');
+
+  // pause state
+  let isPaused = false;
+  let pausedAt = null;      // Date when pause was pressed
+  let totalPausedMs = 0;    // accumulated paused time since start
+
+  function toLocalInputValue(d){
+    const pad = n => String(n).padStart(2,'0');
+    return `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
+  }
+
+  // effective "now" that accounts for pause (freezes progress while paused)
+  function getEffectiveNow(){
+    const real = new Date();
+    const reference = isPaused ? pausedAt : real;
+    return new Date(reference.getTime() - totalPausedMs);
+  }
+
+  function setPauseButtonState(){
+    if(isPaused){
+      pauseBtn.textContent = 'Resume';
+      pauseBtn.classList.add('is-paused');
+    } else {
+      pauseBtn.textContent = 'Pause';
+      pauseBtn.classList.remove('is-paused');
     }
   }
-  function save(key, value) {
-    try {
-      localStorage.setItem(key, JSON.stringify(value));
-    } catch (e) {
-      console.error("Kunne ikke lagre", key, e);
+
+  // toggles the Start button between "Start now" (no active session) and
+  // "Reset" (a session is running or paused) — Reset clears it back to 0
+  function updateStartButtonLabel(){
+    const hasSession = startInput.value !== '' && !isNaN(new Date(startInput.value));
+    startBtn.textContent = hasSession ? 'Reset' : 'Start now';
+    startBtn.classList.toggle('btn-reset-mode', hasSession);
+  }
+
+  // restore saved state — leave start blank if nothing was saved or if it
+  // was intentionally reset; the counter only begins once "Start now" is pressed
+  loadState();
+
+  startBtn.addEventListener('click', () => {
+    const hasSession = startInput.value !== '' && !isNaN(new Date(startInput.value));
+    if(hasSession){
+      // Reset: clear the running session entirely — back to 0, won't count
+      // again until "Start now" is pressed
+      startInput.value = '';
+      endInput.value = '';
+    } else {
+      // Start now
+      startInput.value = toLocalInputValue(new Date());
     }
-  }
-
-  let items = load(KEY_ITEMS, []);       // [{id, name, checked}]
-  let freq = load(KEY_FREQ, {});         // { name: count }
-
-  function uid() {
-    return Date.now().toString(36) + Math.random().toString(36).slice(2, 7);
-  }
-
-  function paintChecker(el, colorA, colorB, size) {
-    el.style.backgroundImage = `repeating-conic-gradient(${colorA} 0% 25%, ${colorB} 0% 50%)`;
-    el.style.backgroundSize = `${size}px ${size}px`;
-  }
-  document.querySelectorAll(".checker").forEach((el, i) => {
-    const pairs = [["#3f7068", "#cf9d2e"], ["#7a4e6d", "#cf9d2e"], ["#3f7068", "#7a4e6d"]];
-    const [a, b] = pairs[i % pairs.length];
-    paintChecker(el, a, b, parseInt(el.style.height) || 8);
+    isPaused = false;
+    pausedAt = null;
+    totalPausedMs = 0;
+    setPauseButtonState();
+    saveState();
+    render();
   });
 
-  const pages = {
-    liste: document.getElementById("page-liste"),
-    top15: document.getElementById("page-top15"),
-  };
-  const subtitle = document.getElementById("subtitle");
-
-  function showPage(name) {
-    Object.values(pages).forEach((p) => p.classList.add("hidden"));
-    pages[name].classList.remove("hidden");
-    if (name === "liste") renderItems();
-    if (name === "top15") renderTop15();
-    updateSubtitle(name);
-  }
-
-  function updateSubtitle(name) {
-    if (name === "liste") {
-      const active = items.filter((i) => !i.checked).length;
-      subtitle.textContent = `${active} varer igjen`;
+  pauseBtn.addEventListener('click', () => {
+    if(!isPaused){
+      isPaused = true;
+      pausedAt = new Date();
     } else {
-      subtitle.textContent = "Topp 15 mest kjøpte";
+      totalPausedMs += (new Date() - pausedAt);
+      isPaused = false;
+      pausedAt = null;
     }
+    setPauseButtonState();
+    saveState();
+    render();
+  });
+
+  // --- Stop button: ends the current session, optionally banking its earnings ---
+  function endCurrentSession(){
+    startInput.value = '';
+    endInput.value = '';
+    isPaused = false;
+    pausedAt = null;
+    totalPausedMs = 0;
+    setPauseButtonState();
+    saveState();
+    render();
   }
 
-  function addItem(name) {
-    const trimmed = name.trim();
-    if (!trimmed) return;
-    items.push({ id: uid(), name: trimmed, checked: false });
-    freq[trimmed] = (freq[trimmed] || 0) + 1;
-    save(KEY_ITEMS, items);
-    save(KEY_FREQ, freq);
-    renderItems();
+  stopBtn.addEventListener('click', () => {
+    stopModal.classList.add('show');
+  });
+
+  stopCancelBtn.addEventListener('click', () => {
+    stopModal.classList.remove('show');
+  });
+
+  stopSaveBtn.addEventListener('click', () => {
+    const wage = parseFloat(wageInput.value);
+    const start = new Date(startInput.value);
+    const now = getEffectiveNow();
+    if(!isNaN(start) && wage > 0 && now > start){
+      const settings = getSettings();
+      const data = computeAll(start, now, wage, settings);
+      savedTotal += data.totalKr;
+      persistSavedTotal();
+      renderSavedTotal();
+    }
+    stopModal.classList.remove('show');
+    endCurrentSession();
+  });
+
+  stopDiscardBtn.addEventListener('click', () => {
+    stopModal.classList.remove('show');
+    endCurrentSession();
+  });
+
+  resetTotalBtn.addEventListener('click', () => {
+    savedTotal = 0;
+    persistSavedTotal();
+    renderSavedTotal();
+  });
+
+  wageInput.addEventListener('input', () => { saveState(); render(); });
+  startInput.addEventListener('input', () => { saveState(); render(); });
+  startInput.addEventListener('change', () => { saveState(); render(); });
+  endInput.addEventListener('input', () => { saveState(); render(); });
+  endInput.addEventListener('change', () => { saveState(); render(); });
+  ot1HoursInput.addEventListener('input', () => { saveState(); render(); });
+  ot1PctInput.addEventListener('input', () => { saveState(); render(); });
+  ot2HoursInput.addEventListener('input', () => { saveState(); render(); });
+  ot2PctInput.addEventListener('input', () => { saveState(); render(); });
+
+  // reads current overtime settings from the inputs (with sane fallbacks)
+  function getSettings(){
+    const ot1HoursRaw = parseFloat(ot1HoursInput.value);
+    const ot1PctRaw = parseFloat(ot1PctInput.value);
+    const ot2HoursRaw = parseFloat(ot2HoursInput.value);
+    const ot2PctRaw = parseFloat(ot2PctInput.value);
+    // blank fields mean "not set yet" — treat as no overtime threshold reached
+    const ot1Hours = isNaN(ot1HoursRaw) ? Infinity : ot1HoursRaw;
+    const ot2Hours = isNaN(ot2HoursRaw) ? Infinity : ot2HoursRaw;
+    const ot1Pct = isNaN(ot1PctRaw) ? 0 : ot1PctRaw;
+    const ot2Pct = isNaN(ot2PctRaw) ? 0 : ot2PctRaw;
+    return {
+      ot1Hours, ot2Hours, ot1Pct, ot2Pct,
+      ot1Mult: 1 + ot1Pct/100,
+      ot2Mult: 1 + ot2Pct/100
+    };
   }
 
-  function removeItem(id) {
-    items = items.filter((it) => it.id !== id);
-    save(KEY_ITEMS, items);
-    renderItems();
+  // rate type at a given instant t, based purely on elapsed hours since start
+  // and the overtime thresholds the user has filled in (same rule every day)
+  function getRateType(t, start, settings){
+    const elapsedHours = (t - start) / 3600000;
+    if(elapsedHours < settings.ot1Hours) return 'normal';
+    if(elapsedHours < settings.ot2Hours) return 'ot1';
+    return 'ot2';
   }
 
-  function toggleChecked(id) {
-    items = items.map((it) => (it.id === id ? { ...it, checked: !it.checked } : it));
-    save(KEY_ITEMS, items);
-    renderItems();
+  const MAX_MINUTES = 30*24*60; // safety cap: 30 days
+
+  function computeAll(start, now, wage, settings){
+    const result = { buckets: {normal:0, ot1:0, ot2:0}, segments: [], totalHours: 0, totalKr: 0 };
+    if(!(now > start) || isNaN(start) || isNaN(now)) return result;
+
+    let totalMinutes = Math.floor((now - start) / 60000);
+    totalMinutes = Math.min(totalMinutes, MAX_MINUTES);
+
+    let curType = null, curLen = 0;
+
+    for(let i=0;i<totalMinutes;i++){
+      const t = new Date(start.getTime() + i*60000 + 30000);
+      const type = getRateType(t, start, settings);
+      result.buckets[type] += 1/60;
+
+      if(type === curType){
+        curLen += 1;
+      } else {
+        if(curType !== null) result.segments.push({type: curType, minutes: curLen});
+        curType = type; curLen = 1;
+      }
+    }
+
+    const remainderMs = (now - start) - totalMinutes*60000;
+    if(remainderMs > 0){
+      const t = new Date(start.getTime() + totalMinutes*60000 + remainderMs/2);
+      const type = getRateType(t, start, settings);
+      result.buckets[type] += remainderMs/3600000;
+      const remMin = remainderMs/60000;
+      if(type === curType){ curLen += remMin; } else {
+        if(curType !== null) result.segments.push({type: curType, minutes: curLen});
+        curType = type; curLen = remMin;
+      }
+    }
+    if(curType !== null) result.segments.push({type: curType, minutes: curLen});
+
+    result.totalHours = result.buckets.normal + result.buckets.ot1 + result.buckets.ot2;
+    result.totalKr = result.buckets.normal*wage + result.buckets.ot1*wage*settings.ot1Mult + result.buckets.ot2*wage*settings.ot2Mult;
+    return result;
   }
 
-  let lastTap = {};
-  function handleItemTap(id) {
-    const now = Date.now();
-    const last = lastTap[id] || 0;
-    if (now - last < 350) {
-      toggleChecked(id);
-      lastTap[id] = 0;
+  function fmtHM(hoursFloat){
+    const totalMin = Math.round(hoursFloat*60);
+    const h = Math.floor(totalMin/60);
+    const m = totalMin % 60;
+    return `${h}h ${String(m).padStart(2,'0')}m`;
+  }
+
+  function fmtKr(v){
+    return v.toLocaleString('en-GB', {maximumFractionDigits:0});
+  }
+
+  function classFor(type){
+    if(type === 'normal') return 'n';
+    if(type === 'ot1') return 'h50';
+    return 'h100';
+  }
+
+  function render(){
+    updateStartButtonLabel();
+    const wage = parseFloat(wageInput.value);
+    const start = new Date(startInput.value);
+    const realNow = new Date();
+    const now = getEffectiveNow(); // accounts for pause
+    const settings = getSettings();
+
+    document.getElementById('punchDate').textContent = realNow.toLocaleDateString('en-GB', {weekday:'short', day:'2-digit', month:'2-digit'});
+    document.getElementById('punchClock').textContent = realNow.toLocaleTimeString('en-GB');
+
+    document.getElementById('legendOt1Label').textContent = `Overtime 1 (${settings.ot1Pct}%)`;
+    document.getElementById('legendOt2Label').textContent = `Overtime 2 (${settings.ot2Pct}%)`;
+    document.getElementById('rateOt1Label').textContent = `Overtime 1 (${settings.ot1Pct}%)`;
+    document.getElementById('rateOt2Label').textContent = `Overtime 2 (${settings.ot2Pct}%)`;
+    const ot1Set = isFinite(settings.ot1Hours);
+    const ot2Set = isFinite(settings.ot2Hours);
+    if(!ot1Set && !ot2Set){
+      document.getElementById('hintText').textContent = 'Fill in the overtime fields above to apply overtime rates.';
     } else {
-      lastTap[id] = now;
+      let msg = `Overtime 1 (${settings.ot1Pct}%) applies after ${ot1Set ? settings.ot1Hours + 'h' : '—'}`;
+      msg += ot2Set ? `, Overtime 2 (${settings.ot2Pct}%) after ${settings.ot2Hours}h.` : '.';
+      document.getElementById('hintText').textContent = msg;
     }
-  }
 
-  function renderItems() {
-    const ul = document.getElementById("itemList");
-    ul.innerHTML = "";
-    if (items.length === 0) {
-      const li = document.createElement("li");
-      li.className = "empty";
-      li.textContent = "Listen er tom. Skriv inn en vare over.";
-      ul.appendChild(li);
+    // planned pay until end time (independent of pause/now status)
+    const plannedBox = document.getElementById('plannedBox');
+    const endVal = new Date(endInput.value);
+    if(!isNaN(start) && !isNaN(endVal) && endVal > start && wage > 0){
+      const plannedData = computeAll(start, endVal, wage, settings);
+      plannedBox.style.display = '';
+      const pWhole = Math.floor(plannedData.totalKr);
+      const pOere = Math.round((plannedData.totalKr - pWhole)*100);
+      document.getElementById('krPlannedWhole').textContent = pWhole.toLocaleString('en-GB');
+      document.getElementById('krPlannedOere').textContent = String(pOere).padStart(2,'0');
+      document.getElementById('plannedSub').textContent = `${fmtHM(plannedData.totalHours)} total · ends at ${endVal.toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit'})}`;
     } else {
-      items.forEach((it) => {
-        const li = document.createElement("li");
-        li.className = "item";
-        const span = document.createElement("span");
-        span.className = "item-text" + (it.checked ? " checked" : "");
-        span.textContent = it.name;
-        span.addEventListener("click", () => handleItemTap(it.id));
-        const btn = document.createElement("button");
-        btn.className = "plain";
-        btn.textContent = "fjern";
-        btn.addEventListener("click", (e) => {
-          e.stopPropagation();
-          removeItem(it.id);
-        });
-        li.appendChild(span);
-        li.appendChild(btn);
-        ul.appendChild(li);
-      });
+      plannedBox.style.display = 'none';
     }
-    updateSubtitle("liste");
-  }
 
-  function getTop15() {
-    return Object.entries(freq).sort((a, b) => b[1] - a[1]).slice(0, 15);
-  }
-
-  // Sveip til høyre på en topp15-vare -> legg til i handlelisten
-  let swipeStartX = {};
-  function onSwipeStart(name, e) {
-    const x = e.touches ? e.touches[0].clientX : e.clientX;
-    swipeStartX[name] = x;
-  }
-  function onSwipeEnd(name, rowEl, e) {
-    const startX = swipeStartX[name];
-    if (startX == null) return;
-    const x = e.changedTouches ? e.changedTouches[0].clientX : e.clientX;
-    const delta = x - startX;
-    swipeStartX[name] = null;
-    if (delta > 60) {
-      addItem(name);
-      rowEl.classList.add("flash");
-      const countEl = rowEl.querySelector(".count");
-      const original = countEl.textContent;
-      countEl.textContent = "lagt til ✓";
-      setTimeout(() => {
-        rowEl.classList.remove("flash");
-        countEl.textContent = original;
-      }, 500);
-    }
-  }
-
-  function renderTop15() {
-    const ol = document.getElementById("topList");
-    ol.innerHTML = "";
-    const top = getTop15();
-    if (top.length === 0) {
-      const li = document.createElement("li");
-      li.className = "empty";
-      li.textContent = "Ingen statistikk ennå. Legg til varer på listen først.";
-      ol.appendChild(li);
+    if(isNaN(start) || !wage || wage <= 0 || start >= now){
+      document.getElementById('heroSub').textContent = start >= now
+        ? 'Start time is in the future'
+        : 'Set hourly wage and start time to begin';
+      document.getElementById('krWhole').textContent = '0';
+      document.getElementById('krOere').textContent = '00';
+      document.getElementById('elapsedLabel').textContent = '0h 00m';
+      document.getElementById('tN').textContent = document.getElementById('t50').textContent = document.getElementById('t100').textContent = document.getElementById('tTot').textContent = '0h 00m';
+      document.getElementById('krN').textContent = document.getElementById('kr50').textContent = document.getElementById('kr100').textContent = document.getElementById('krTot').textContent = '0';
+      document.getElementById('timeline').querySelectorAll('.seg').forEach(el => el.remove());
+      document.getElementById('nowMarker').style.left = '0%';
       return;
     }
-    top.forEach(([name, count], idx) => {
-      const li = document.createElement("li");
-      li.className = "top-row";
-      li.innerHTML = `<span class="item-text"><span class="rank">${idx + 1}.</span>${name}</span><span class="count">${count}x</span>`;
-      li.addEventListener("touchstart", (e) => onSwipeStart(name, e), { passive: true });
-      li.addEventListener("touchend", (e) => onSwipeEnd(name, li, e));
-      li.addEventListener("mousedown", (e) => onSwipeStart(name, e));
-      li.addEventListener("mouseup", (e) => onSwipeEnd(name, li, e));
-      ol.appendChild(li);
+
+    const data = computeAll(start, now, wage, settings);
+
+    const wholeKr = Math.floor(data.totalKr);
+    const oere = Math.round((data.totalKr - wholeKr)*100);
+    document.getElementById('krWhole').textContent = wholeKr.toLocaleString('en-GB');
+    document.getElementById('krOere').textContent = String(oere).padStart(2,'0');
+
+    const dowText = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'][start.getDay()];
+    const pauseFlag = isPaused ? '<span class="paused-flag">· PAUSED</span>' : '';
+    document.getElementById('heroSub').innerHTML = `Started <b>${dowText} ${start.toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit'})}</b> · ${fmtHM(data.totalHours)} worked ${pauseFlag}`;
+
+    document.getElementById('elapsedLabel').textContent = fmtHM(data.totalHours);
+
+    document.getElementById('tN').textContent = fmtHM(data.buckets.normal);
+    document.getElementById('t50').textContent = fmtHM(data.buckets.ot1);
+    document.getElementById('t100').textContent = fmtHM(data.buckets.ot2);
+    document.getElementById('tTot').textContent = fmtHM(data.totalHours);
+
+    document.getElementById('krN').textContent = fmtKr(data.buckets.normal*wage);
+    document.getElementById('kr50').textContent = fmtKr(data.buckets.ot1*wage*settings.ot1Mult);
+    document.getElementById('kr100').textContent = fmtKr(data.buckets.ot2*wage*settings.ot2Mult);
+    document.getElementById('krTot').textContent = fmtKr(data.totalKr);
+
+    // timeline segments
+    const timeline = document.getElementById('timeline');
+    timeline.querySelectorAll('.seg').forEach(el => el.remove());
+    const marker = document.getElementById('nowMarker');
+    const totalMin = data.segments.reduce((s,seg)=>s+seg.minutes,0) || 1;
+    data.segments.forEach(seg => {
+      const div = document.createElement('div');
+      div.className = 'seg ' + classFor(seg.type);
+      div.style.width = (seg.minutes/totalMin*100) + '%';
+      timeline.insertBefore(div, marker);
+    });
+    marker.style.left = '100%';
+  }
+
+  setPauseButtonState();
+  loadSavedTotal();
+  renderSavedTotal();
+  render();
+  setInterval(render, 1000);
+
+  // register service worker for offline use / installation
+  if('serviceWorker' in navigator){
+    window.addEventListener('load', () => {
+      navigator.serviceWorker.register('sw.js').catch(() => {/* fail silently, app still works online */});
     });
   }
 
-  // --- Events: hovedside ---
-  const itemInput = document.getElementById("itemInput");
-  document.getElementById("addBtn").addEventListener("click", () => {
-    addItem(itemInput.value);
-    itemInput.value = "";
-  });
-  itemInput.addEventListener("keydown", (e) => {
-    if (e.key === "Enter") {
+  // --- Install prompt (shows a custom "Install" button instead of relying on the browser menu) ---
+  const installBanner = document.getElementById('installBanner');
+  const installBtn = document.getElementById('installBtn');
+  const installDismiss = document.getElementById('installDismiss');
+  let deferredInstallPrompt = null;
+
+  function isStandalone(){
+    return window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true;
+  }
+
+  if(!isStandalone() && sessionStorage.getItem('installDismissed') !== '1'){
+    window.addEventListener('beforeinstallprompt', (e) => {
       e.preventDefault();
-      addItem(itemInput.value);
-      itemInput.value = "";
-    }
-  });
-
-  document.getElementById("resetBtn").addEventListener("click", () => {
-    document.getElementById("confirmModal").classList.remove("hidden");
-  });
-  document.getElementById("cancelReset").addEventListener("click", () => {
-    document.getElementById("confirmModal").classList.add("hidden");
-  });
-  document.getElementById("confirmReset").addEventListener("click", () => {
-    items = [];
-    save(KEY_ITEMS, items);
-    document.getElementById("confirmModal").classList.add("hidden");
-    renderItems();
-  });
-
-  document.getElementById("top15Btn").addEventListener("click", () => showPage("top15"));
-  document.getElementById("backFromTop").addEventListener("click", () => showPage("liste"));
-
-  // Init
-  showPage("liste");
-
-  if ("serviceWorker" in navigator) {
-    window.addEventListener("load", () => {
-      navigator.serviceWorker.register("sw.js").catch((e) => console.error("SW-feil", e));
+      deferredInstallPrompt = e;
+      installBanner.classList.add('show');
     });
   }
 
-  // --- Spør om installering som app ---
-  const installBanner = document.getElementById("installBanner");
-  const installText = document.getElementById("installText");
-  const installBtn = document.getElementById("installBtn");
-  const installDismiss = document.getElementById("installDismiss");
-
-  const isStandalone =
-    window.matchMedia("(display-mode: standalone)").matches ||
-    window.navigator.standalone === true;
-  const ua = navigator.userAgent.toLowerCase();
-  const isIOS = /iphone|ipad|ipod/.test(ua);
-
-  let deferredPrompt = null;
-
-  function showInstallBanner(mode) {
-    if (isStandalone) return;
-    if (mode === "ios") {
-      installText.textContent =
-        "Legg til Handleliste på hjem-skjermen: trykk Del-ikonet nederst, og velg \"Legg til på Hjem-skjerm\".";
-      installBtn.classList.add("hidden");
-    } else {
-      installText.textContent = "Installer Handleliste som app på telefonen din?";
-      installBtn.classList.remove("hidden");
-    }
-    installBanner.classList.remove("hidden");
-  }
-
-  if (!isStandalone) {
-    if (isIOS) {
-      // Safari støtter ikke automatisk installasjonsprompt, så vi viser instruksjoner
-      setTimeout(() => showInstallBanner("ios"), 500);
-    } else {
-      window.addEventListener("beforeinstallprompt", (e) => {
-        e.preventDefault();
-        deferredPrompt = e;
-        showInstallBanner("android");
-      });
-    }
-  }
-
-  installBtn.addEventListener("click", async () => {
-    installBanner.classList.add("hidden");
-    if (deferredPrompt) {
-      deferredPrompt.prompt();
-      await deferredPrompt.userChoice;
-      deferredPrompt = null;
-    }
+  installBtn && installBtn.addEventListener('click', async () => {
+    if(!deferredInstallPrompt) return;
+    deferredInstallPrompt.prompt();
+    await deferredInstallPrompt.userChoice;
+    deferredInstallPrompt = null;
+    installBanner.classList.remove('show');
   });
 
-  installDismiss.addEventListener("click", () => {
-    installBanner.classList.add("hidden");
+  installDismiss && installDismiss.addEventListener('click', () => {
+    installBanner.classList.remove('show');
+    sessionStorage.setItem('installDismissed', '1');
   });
 
-  window.addEventListener("appinstalled", () => {
-    installBanner.classList.add("hidden");
+  window.addEventListener('appinstalled', () => {
+    installBanner.classList.remove('show');
   });
-
-  // Manuell knapp: alltid tilgjengelig, uansett om automatisk prompt har vist seg
-  const manualInstallBtn = document.getElementById("manualInstallBtn");
-  manualInstallBtn.addEventListener("click", async () => {
-    if (isStandalone) {
-      alert("Denne er allerede installert som app på telefonen din.");
-      return;
-    }
-    if (deferredPrompt) {
-      deferredPrompt.prompt();
-      await deferredPrompt.userChoice;
-      deferredPrompt = null;
-      return;
-    }
-    if (isIOS) {
-      alert('Trykk Del-ikonet nederst i Safari (firkant med pil opp), og velg "Legg til på Hjem-skjerm".');
-    } else {
-      alert('Trykk de tre prikkene/menyknappen øverst i nettleseren, og velg "Installer app" eller "Legg til på startskjermen".');
-    }
-  });
-})();
 </script>
 </body>
 </html>
