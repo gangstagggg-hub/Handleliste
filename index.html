@@ -4,7 +4,7 @@
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover" />
 <title>Handleliste</title>
-<meta name="theme-color" content="#3f7068" />
+<meta name="theme-color" content="#2c4f49" />
 <meta name="apple-mobile-web-app-capable" content="yes" />
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
 <meta name="apple-mobile-web-app-title" content="Handleliste" />
@@ -12,29 +12,27 @@
 <link rel="apple-touch-icon" href="icons/icon-192.png" />
 <link rel="icon" href="icons/icon-192.png" />
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Patrick+Hand&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
   :root {
-    --paper: #f4efe0;
-    --ink: #2e2a24;
-    --graphite: #5a564c;
-    --faint: #d9d0b4;
-    --teal: #3f7068;
-    --mustard: #cf9d2e;
-    --plum: #7a4e6d;
+    --bg: #f6f1e6;
+    --surface: #fffdf8;
+    --ink: #22322e;
+    --muted: #7c7568;
+    --line: #e6ddc9;
+    --teal: #2c4f49;
+    --teal-light: #3f7068;
+    --gold: #c8992e;
+    --gold-soft: #e9c877;
     --brick: #a8452f;
-    --cream: #fbf8ef;
+    --cream: #f6f1e6;
   }
   * { box-sizing: border-box; }
   body {
     margin: 0;
     min-height: 100vh;
-    background: var(--paper);
-    background-image:
-      linear-gradient(var(--faint) 1px, transparent 1px),
-      linear-gradient(90deg, var(--faint) 1px, transparent 1px);
-    background-size: 22px 22px;
-    font-family: 'Space Mono', monospace;
+    background: var(--bg);
+    font-family: 'Inter', sans-serif;
     color: var(--ink);
     display: flex;
     justify-content: center;
@@ -43,165 +41,188 @@
     width: 100%;
     max-width: 420px;
     min-height: 100vh;
-    background: var(--cream);
-    box-shadow: 0 0 0 3px var(--ink);
+    background: var(--surface);
     display: flex;
     flex-direction: column;
+    box-shadow: 0 0 40px rgba(44,79,73,0.08);
   }
-  .checker {
-    width: 100%;
-    border-top: 2px solid var(--ink);
-    border-bottom: 2px solid var(--ink);
-  }
+
+  /* HEADER */
   header {
-    padding: 16px 20px 12px;
+    background: var(--teal);
+    color: var(--cream);
+    padding: 28px 24px 22px;
     text-align: center;
+    position: relative;
+  }
+  header .logo {
+    width: 40px;
+    height: 40px;
+    margin: 0 auto 10px;
+    display: block;
   }
   header h1 {
-    font-family: 'Patrick Hand', cursive;
-    font-weight: 400;
-    font-size: 1.8rem;
+    font-family: 'Fraunces', serif;
+    font-weight: 500;
+    font-size: 1.6rem;
+    letter-spacing: 0.02em;
     margin: 0;
   }
   header .sub {
     font-size: 12px;
-    color: var(--graphite);
-    margin-top: 2px;
+    color: #cfe0da;
+    margin-top: 4px;
+    letter-spacing: 0.03em;
   }
-  .page { flex: 1; display: flex; flex-direction: column; padding: 0 20px; }
-  .row { display: flex; gap: 8px; padding-top: 16px; }
+
+  .page { flex: 1; display: flex; flex-direction: column; padding: 0 24px; }
+
+  /* INPUT ROW */
+  .row { display: flex; gap: 10px; padding-top: 22px; }
   input[type=text] {
     flex: 1;
-    padding: 8px 12px;
-    background: var(--paper);
-    border: 2px solid var(--ink);
+    padding: 13px 16px;
+    background: var(--surface);
+    border: 1.5px solid var(--line);
+    border-radius: 12px;
     outline: none;
     font-size: 16px;
-    font-family: 'Space Mono', monospace;
+    font-family: 'Inter', sans-serif;
     color: var(--ink);
+    transition: border-color 0.2s;
   }
+  input[type=text]:focus { border-color: var(--teal-light); }
+
   button {
     cursor: pointer;
-    font-family: 'Space Mono', monospace;
-    font-weight: 700;
-    text-transform: uppercase;
-    letter-spacing: 0.02em;
-    font-size: 13px;
-    border: 2px solid var(--ink);
-    border-radius: 3px;
-    color: var(--cream);
-    padding: 10px 16px;
+    font-family: 'Inter', sans-serif;
+    font-weight: 600;
+    font-size: 14px;
+    border: none;
+    border-radius: 12px;
+    letter-spacing: 0.01em;
   }
-  button.plain { background: none; border: none; color: var(--brick); font-size: 11px; padding: 4px 8px; }
-  button.teal { background: var(--teal); }
-  button.brick { background: var(--brick); }
-  button.plum { background: var(--plum); }
-  button.outline { background: var(--paper); color: var(--ink); }
-  ul, ol { list-style: none; margin: 12px 0 0; padding: 0; flex: 1; overflow-y: auto; }
+  button.gold { background: var(--gold); color: var(--teal); padding: 13px 20px; }
+  button.gold:active { background: var(--gold-soft); }
+  button.outline-teal {
+    background: transparent;
+    color: var(--teal);
+    border: 1.5px solid var(--teal);
+    padding: 12px 16px;
+  }
+  button.outline-brick {
+    background: transparent;
+    color: var(--brick);
+    border: 1.5px solid var(--brick);
+    padding: 12px 16px;
+  }
+  button.solid-teal { background: var(--teal); color: var(--cream); padding: 13px 20px; }
+  button.plain { background: none; color: var(--muted); font-size: 12px; font-weight: 500; padding: 4px 6px; }
+
+  /* LIST */
+  ul, ol { list-style: none; margin: 18px 0 0; padding: 0; flex: 1; overflow-y: auto; }
   li.item {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    padding: 10px 0;
-    border-bottom: 1px dashed var(--faint);
+    padding: 14px 2px;
+    border-bottom: 1px solid var(--line);
     user-select: none;
   }
   .item-text {
-    font-family: 'Patrick Hand', cursive;
-    font-size: 1.5rem;
+    font-family: 'Fraunces', serif;
+    font-size: 1.25rem;
+    font-weight: 400;
     display: inline-block;
     position: relative;
+    color: var(--ink);
   }
-  .item-text.checked { color: var(--graphite); opacity: 0.85; }
-  .item-text.checked::before,
+  .item-text.checked {
+    color: var(--muted);
+  }
   .item-text.checked::after {
     content: "";
     position: absolute;
-    left: -3%;
-    width: 106%;
-    height: 4px;
-    background: var(--graphite);
-    border-radius: 3px;
-    mix-blend-mode: multiply;
+    left: -2%;
+    width: 104%;
+    top: 52%;
+    height: 1.5px;
+    background: var(--gold);
   }
-  .item-text.checked::before { top: 44%; transform: rotate(-1.8deg); opacity: 0.85; }
-  .item-text.checked::after { top: 56%; transform: rotate(1.4deg); opacity: 0.7; }
-  .empty { text-align: center; color: var(--graphite); margin-top: 32px; font-size: 14px; }
-  .hint { font-size: 11px; color: var(--graphite); text-align: center; padding: 4px 0 8px; }
-  .swipe-hint { font-size: 12px; color: var(--graphite); text-align: center; margin-bottom: 4px; }
-  .btn-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; padding: 16px 0; }
+  .empty { text-align: center; color: var(--muted); margin-top: 40px; font-size: 14px; font-family: 'Inter', sans-serif; }
+  .hint { font-size: 12px; color: var(--muted); text-align: center; padding: 10px 0 4px; }
+  .swipe-hint { font-size: 12px; color: var(--muted); text-align: center; margin: 18px 0 4px; }
+
+  .btn-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; padding: 20px 0 10px; }
+
   .modal-backdrop {
-    position: fixed; inset: 0; background: rgba(0,0,0,0.45);
+    position: fixed; inset: 0; background: rgba(34,50,46,0.55);
     display: flex; align-items: center; justify-content: center; padding: 24px;
     z-index: 10;
   }
-  .modal { background: var(--cream); max-width: 340px; width: 100%; border: 3px solid var(--ink); }
-  .modal .body { padding: 20px; }
-  .modal p { font-family: 'Patrick Hand', cursive; font-size: 1.2rem; margin: 0 0 16px; }
+  .modal { background: var(--surface); max-width: 340px; width: 100%; border-radius: 18px; padding: 26px 24px; }
+  .modal p { font-family: 'Fraunces', serif; font-size: 1.2rem; margin: 0 0 20px; color: var(--ink); }
   .modal .btn-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+
   .hidden { display: none !important; }
-  .top-row { display: flex; align-items: center; justify-content: space-between; padding: 10px 4px; border-bottom: 1px dashed var(--faint); cursor: grab; transition: background 0.3s ease; }
-  .top-row.flash { background: rgba(63, 112, 104, 0.13); }
-  .top-row .rank { color: var(--graphite); margin-right: 8px; font-family: 'Space Mono', monospace; font-size: 13px; }
-  .top-row .count { font-size: 12px; color: #2c4f49; font-family: 'Space Mono', monospace; }
-  .footer-btn { padding: 16px 0; }
+
+  .top-row {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 14px 4px; border-bottom: 1px solid var(--line);
+    cursor: grab; transition: background 0.35s ease;
+    border-radius: 8px;
+  }
+  .top-row.flash { background: rgba(200,153,46,0.14); }
+  .top-row .rank { color: var(--gold); margin-right: 10px; font-family: 'Inter', sans-serif; font-weight: 600; font-size: 13px; }
+  .top-row .count { font-size: 12px; color: var(--teal-light); font-family: 'Inter', sans-serif; font-weight: 500; }
+
+  .footer-btn { padding: 20px 0; }
+
   .install-banner {
-    position: sticky;
-    bottom: 0;
-    left: 0;
-    right: 0;
-    background: var(--ink);
-    color: var(--cream);
-    padding: 12px 16px;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 10px;
-    border-top: 3px solid var(--mustard);
-    font-family: 'Space Mono', monospace;
-    font-size: 12px;
-    z-index: 20;
+    position: sticky; bottom: 0; left: 0; right: 0;
+    background: var(--teal); color: var(--cream);
+    padding: 14px 20px; display: flex; align-items: center; justify-content: space-between;
+    gap: 12px; font-size: 12px; z-index: 20;
   }
-  .install-banner span { flex: 1; line-height: 1.4; }
-  .install-banner .actions { display: flex; gap: 6px; flex-shrink: 0; }
-  .install-banner button {
-    padding: 7px 10px;
-    font-size: 11px;
-    border-radius: 3px;
+  .install-banner span { flex: 1; line-height: 1.5; }
+  .install-banner .actions { display: flex; gap: 8px; flex-shrink: 0; }
+  .install-banner button { padding: 9px 12px; font-size: 11px; border-radius: 10px; }
+  .install-banner button.install-yes { background: var(--gold); color: var(--teal); }
+  .install-banner button.install-no { background: none; border: 1px solid rgba(246,241,230,0.5); color: var(--cream); }
+
+  .manual-install {
+    text-align: center; padding-bottom: 18px;
   }
-  .install-banner button.install-yes { background: var(--mustard); color: var(--ink); border-color: var(--mustard); }
-  .install-banner button.install-no { background: none; border: 1px solid var(--cream); color: var(--cream); }
+  .manual-install button {
+    font-size: 12px; color: var(--muted); background: none; border: none;
+    text-decoration: underline; text-underline-offset: 3px;
+  }
 </style>
 </head>
 <body>
 <div id="app">
 
-  <div class="checker" id="checker1" style="height:10px;"></div>
-
   <header>
-    <h1>&#9998; Handleliste</h1>
+    <svg class="logo" viewBox="0 0 100 100" fill="none">
+      <path d="M30 38 L38 20 M70 38 L62 20" stroke="#f6f1e6" stroke-width="5" stroke-linecap="round"/>
+      <path d="M26 38 L74 38 L68 78 L32 78 Z" stroke="#f6f1e6" stroke-width="5" stroke-linejoin="round" stroke-linecap="round"/>
+      <path d="M40 56 L48 64 L64 46" stroke="#c8992e" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/>
+    </svg>
+    <h1>Handleliste</h1>
     <div class="sub" id="subtitle">0 varer igjen</div>
   </header>
-
-  <div class="checker" id="checker2" style="height:8px;"></div>
 
   <!-- SIDE: LISTE -->
   <div class="page" id="page-liste">
     <div class="row">
       <input type="text" id="itemInput" placeholder="Legg til vare..." autofocus />
-      <button class="teal" id="addBtn">Legg til</button>
+      <button class="gold" id="addBtn">Legg til</button>
     </div>
     <ul id="itemList"></ul>
     <div class="hint">Dobbeltrykk en vare for å streke den over.</div>
-    <div class="checker" style="height:8px;" id="checker3"></div>
     <div class="btn-grid">
-      <button class="brick" id="resetBtn">Nullstill</button>
-      <button class="plum" id="top15Btn">Topp 15</button>
-    </div>
-    <div style="text-align:center; padding-bottom: 14px;">
-      <button class="outline" id="manualInstallBtn" style="font-size:11px; padding:8px 14px;">
-        &#8681; Installer som app
-      </button>
+      <button class="outline-brick" id="resetBtn">Nullstill</button>
+      <button class="outline-teal" id="top15Btn">Topp 15</button>
     </div>
   </div>
 
@@ -210,21 +231,17 @@
     <div class="swipe-hint">Sveip en vare mot høyre for å legge den til på handlelisten.</div>
     <ol id="topList"></ol>
     <div class="footer-btn">
-      <div class="checker" style="height:8px;"></div>
-      <button class="teal" style="width:100%;margin-top:16px;" id="backFromTop">Tilbake til listen</button>
+      <button class="solid-teal" style="width:100%;" id="backFromTop">Tilbake til listen</button>
     </div>
   </div>
 
   <!-- MODAL: BEKREFT NULLSTILL -->
   <div class="modal-backdrop hidden" id="confirmModal">
     <div class="modal">
-      <div class="checker" style="height:8px;"></div>
-      <div class="body">
-        <p>Er du sikker på at du vil slette hele listen?</p>
-        <div class="btn-row">
-          <button class="outline" id="cancelReset">Avbryt</button>
-          <button class="brick" id="confirmReset">Slett</button>
-        </div>
+      <p>Er du sikker på at du vil slette hele listen?</p>
+      <div class="btn-row">
+        <button class="outline-teal" id="cancelReset">Avbryt</button>
+        <button class="outline-brick" id="confirmReset" style="background:var(--brick);color:var(--cream);border-color:var(--brick);">Slett</button>
       </div>
     </div>
   </div>
@@ -248,35 +265,18 @@
     try {
       const raw = localStorage.getItem(key);
       return raw ? JSON.parse(raw) : fallback;
-    } catch (e) {
-      console.error("Kunne ikke laste", key, e);
-      return fallback;
-    }
+    } catch (e) { return fallback; }
   }
   function save(key, value) {
-    try {
-      localStorage.setItem(key, JSON.stringify(value));
-    } catch (e) {
-      console.error("Kunne ikke lagre", key, e);
-    }
+    try { localStorage.setItem(key, JSON.stringify(value)); } catch (e) {}
   }
 
-  let items = load(KEY_ITEMS, []);       // [{id, name, checked}]
-  let freq = load(KEY_FREQ, {});         // { name: count }
+  let items = load(KEY_ITEMS, []);
+  let freq = load(KEY_FREQ, {});
 
   function uid() {
     return Date.now().toString(36) + Math.random().toString(36).slice(2, 7);
   }
-
-  function paintChecker(el, colorA, colorB, size) {
-    el.style.backgroundImage = `repeating-conic-gradient(${colorA} 0% 25%, ${colorB} 0% 50%)`;
-    el.style.backgroundSize = `${size}px ${size}px`;
-  }
-  document.querySelectorAll(".checker").forEach((el, i) => {
-    const pairs = [["#3f7068", "#cf9d2e"], ["#7a4e6d", "#cf9d2e"], ["#3f7068", "#7a4e6d"]];
-    const [a, b] = pairs[i % pairs.length];
-    paintChecker(el, a, b, parseInt(el.style.height) || 8);
-  });
 
   const pages = {
     liste: document.getElementById("page-liste"),
@@ -301,8 +301,13 @@
     }
   }
 
+  function capitalize(str) {
+    if (!str) return str;
+    return str.charAt(0).toUpperCase() + str.slice(1);
+  }
+
   function addItem(name) {
-    const trimmed = name.trim();
+    const trimmed = capitalize(name.trim());
     if (!trimmed) return;
     items.push({ id: uid(), name: trimmed, checked: false });
     freq[trimmed] = (freq[trimmed] || 0) + 1;
@@ -370,7 +375,6 @@
     return Object.entries(freq).sort((a, b) => b[1] - a[1]).slice(0, 15);
   }
 
-  // Sveip til høyre på en topp15-vare -> legg til i handlelisten
   let swipeStartX = {};
   function onSwipeStart(name, e) {
     const x = e.touches ? e.touches[0].clientX : e.clientX;
@@ -409,7 +413,7 @@
     top.forEach(([name, count], idx) => {
       const li = document.createElement("li");
       li.className = "top-row";
-      li.innerHTML = `<span class="item-text"><span class="rank">${idx + 1}.</span>${name}</span><span class="count">${count}x</span>`;
+      li.innerHTML = `<span class="item-text"><span class="rank">${idx + 1}</span>${name}</span><span class="count">${count}x</span>`;
       li.addEventListener("touchstart", (e) => onSwipeStart(name, e), { passive: true });
       li.addEventListener("touchend", (e) => onSwipeEnd(name, li, e));
       li.addEventListener("mousedown", (e) => onSwipeStart(name, e));
@@ -418,7 +422,6 @@
     });
   }
 
-  // --- Events: hovedside ---
   const itemInput = document.getElementById("itemInput");
   document.getElementById("addBtn").addEventListener("click", () => {
     addItem(itemInput.value);
@@ -448,16 +451,14 @@
   document.getElementById("top15Btn").addEventListener("click", () => showPage("top15"));
   document.getElementById("backFromTop").addEventListener("click", () => showPage("liste"));
 
-  // Init
   showPage("liste");
 
   if ("serviceWorker" in navigator) {
     window.addEventListener("load", () => {
-      navigator.serviceWorker.register("sw.js").catch((e) => console.error("SW-feil", e));
+      navigator.serviceWorker.register("sw.js").catch(() => {});
     });
   }
 
-  // --- Spør om installering som app ---
   const installBanner = document.getElementById("installBanner");
   const installText = document.getElementById("installText");
   const installBtn = document.getElementById("installBtn");
@@ -486,7 +487,6 @@
 
   if (!isStandalone) {
     if (isIOS) {
-      // Safari støtter ikke automatisk installasjonsprompt, så vi viser instruksjoner
       setTimeout(() => showInstallBanner("ios"), 500);
     } else {
       window.addEventListener("beforeinstallprompt", (e) => {
@@ -512,26 +512,6 @@
 
   window.addEventListener("appinstalled", () => {
     installBanner.classList.add("hidden");
-  });
-
-  // Manuell knapp: alltid tilgjengelig, uansett om automatisk prompt har vist seg
-  const manualInstallBtn = document.getElementById("manualInstallBtn");
-  manualInstallBtn.addEventListener("click", async () => {
-    if (isStandalone) {
-      alert("Denne er allerede installert som app på telefonen din.");
-      return;
-    }
-    if (deferredPrompt) {
-      deferredPrompt.prompt();
-      await deferredPrompt.userChoice;
-      deferredPrompt = null;
-      return;
-    }
-    if (isIOS) {
-      alert('Trykk Del-ikonet nederst i Safari (firkant med pil opp), og velg "Legg til på Hjem-skjerm".');
-    } else {
-      alert('Trykk de tre prikkene/menyknappen øverst i nettleseren, og velg "Installer app" eller "Legg til på startskjermen".');
-    }
   });
 })();
 </script>
