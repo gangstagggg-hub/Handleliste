@@ -197,6 +197,14 @@
     font-size: 12px; color: var(--muted); background: none; border: none;
     text-decoration: underline; text-underline-offset: 3px;
   }
+
+  .rec-row {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 13px 2px; border-bottom: 1px solid var(--line);
+  }
+  .rec-row .rec-info { display: flex; flex-direction: column; gap: 2px; }
+  .rec-row .rec-interval { font-size: 12px; color: var(--muted); }
+  .rec-row .rec-status { font-size: 11px; color: var(--gold); font-weight: 600; }
 </style>
 </head>
 <body>
@@ -224,6 +232,9 @@
       <button class="outline-brick" id="resetBtn">Nullstill</button>
       <button class="outline-teal" id="top15Btn">Topp 15</button>
     </div>
+    <div class="footer-btn" style="padding-top:0;">
+      <button class="solid-teal" style="width:100%;" id="recurringBtn">Faste varer</button>
+    </div>
   </div>
 
   <!-- SIDE: TOPP 15 -->
@@ -232,6 +243,20 @@
     <ol id="topList"></ol>
     <div class="footer-btn">
       <button class="solid-teal" style="width:100%;" id="backFromTop">Tilbake til listen</button>
+    </div>
+  </div>
+
+  <!-- SIDE: FASTE VARER -->
+  <div class="page hidden" id="page-faste">
+    <div class="swipe-hint">Faste varer legger seg selv til handlelisten igjen etter et gitt antall dager fra de ble krysset av eller fjernet.</div>
+    <div class="row" style="gap:8px;">
+      <input type="text" id="recurringName" placeholder="Vare, f.eks. Kattemat" style="flex:2;" />
+      <input type="number" id="recurringDays" placeholder="Dager" min="1" style="flex:1; min-width:0; padding:13px 10px;" />
+    </div>
+    <button class="gold" id="addRecurringBtn" style="margin-top:10px; width:100%;">Legg til fast vare</button>
+    <ul id="recurringList" style="margin-top:8px;"></ul>
+    <div class="footer-btn">
+      <button class="solid-teal" style="width:100%;" id="backFromRecurring">Tilbake til listen</button>
     </div>
   </div>
 
@@ -260,6 +285,7 @@
 (function () {
   const KEY_ITEMS = "handleliste-items";
   const KEY_FREQ = "handleliste-frekvens";
+  const KEY_RECURRING = "handleliste-faste-varer";
 
   function load(key, fallback) {
     try {
@@ -273,6 +299,7 @@
 
   let items = load(KEY_ITEMS, []);
   let freq = load(KEY_FREQ, {});
+  let recurring = load(KEY_RECURRING, []); // [{id, name, intervalDays, lastTriggerAt}]
 
   function uid() {
     return Date.now().toString(36) + Math.random().toString(36).slice(2, 7);
@@ -281,14 +308,16 @@
   const pages = {
     liste: document.getElementById("page-liste"),
     top15: document.getElementById("page-top15"),
+    faste: document.getElementById("page-faste"),
   };
   const subtitle = document.getElementById("subtitle");
 
   function showPage(name) {
     Object.values(pages).forEach((p) => p.classList.add("hidden"));
     pages[name].classList.remove("hidden");
-    if (name === "liste") renderItems();
+    if (name === "liste") { checkRecurring(); renderItems(); }
     if (name === "top15") renderTop15();
+    if (name === "faste") renderRecurring();
     updateSubtitle(name);
   }
 
@@ -296,8 +325,10 @@
     if (name === "liste") {
       const active = items.filter((i) => !i.checked).length;
       subtitle.textContent = `${active} varer igjen`;
-    } else {
+    } else if (name === "top15") {
       subtitle.textContent = "Topp 15 mest kjøpte";
+    } else {
+      subtitle.textContent = "Faste varer";
     }
   }
 
@@ -316,14 +347,58 @@
     renderItems();
   }
 
+  const DAY_MS = 24 * 60 * 60 * 1000;
+
+  function findRecurringByName(name) {
+    return recurring.find((r) => r.name.toLowerCase() === name.toLowerCase());
+  }
+
+  function registerConsumed(name) {
+    const r = findRecurringByName(name);
+    if (r) {
+      r.lastTriggerAt = Date.now();
+      save(KEY_RECURRING, recurring);
+    }
+  }
+
+  function isActiveInList(name) {
+    return items.some((it) => it.name.toLowerCase() === name.toLowerCase() && !it.checked);
+  }
+
+  function checkRecurring() {
+    if (recurring.length === 0) return;
+    const now = Date.now();
+    let changed = false;
+    recurring.forEach((r) => {
+      if (isActiveInList(r.name)) return;
+      const elapsedDays = (now - r.lastTriggerAt) / DAY_MS;
+      if (elapsedDays >= r.intervalDays) {
+        items.push({ id: uid(), name: r.name, checked: false });
+        freq[r.name] = (freq[r.name] || 0) + 1;
+        changed = true;
+      }
+    });
+    if (changed) {
+      save(KEY_ITEMS, items);
+      save(KEY_FREQ, freq);
+    }
+  }
+
   function removeItem(id) {
-    items = items.filter((it) => it.id !== id);
+    const it = items.find((i) => i.id === id);
+    if (it) registerConsumed(it.name);
+    items = items.filter((i) => i.id !== id);
     save(KEY_ITEMS, items);
     renderItems();
   }
 
   function toggleChecked(id) {
-    items = items.map((it) => (it.id === id ? { ...it, checked: !it.checked } : it));
+    items = items.map((it) => {
+      if (it.id !== id) return it;
+      const newChecked = !it.checked;
+      if (newChecked) registerConsumed(it.name);
+      return { ...it, checked: newChecked };
+    });
     save(KEY_ITEMS, items);
     renderItems();
   }
@@ -450,6 +525,73 @@
 
   document.getElementById("top15Btn").addEventListener("click", () => showPage("top15"));
   document.getElementById("backFromTop").addEventListener("click", () => showPage("liste"));
+
+  function addRecurring() {
+    const nameInput = document.getElementById("recurringName");
+    const daysInput = document.getElementById("recurringDays");
+    const name = capitalize(nameInput.value.trim());
+    const days = parseInt(daysInput.value, 10);
+    if (!name || !days || days < 1) return;
+    if (findRecurringByName(name)) {
+      nameInput.value = "";
+      daysInput.value = "";
+      return;
+    }
+    recurring.push({ id: uid(), name, intervalDays: days, lastTriggerAt: Date.now() });
+    save(KEY_RECURRING, recurring);
+    nameInput.value = "";
+    daysInput.value = "";
+    renderRecurring();
+  }
+
+  function removeRecurring(id) {
+    recurring = recurring.filter((r) => r.id !== id);
+    save(KEY_RECURRING, recurring);
+    renderRecurring();
+  }
+
+  function renderRecurring() {
+    const ul = document.getElementById("recurringList");
+    ul.innerHTML = "";
+    if (recurring.length === 0) {
+      const li = document.createElement("li");
+      li.className = "empty";
+      li.textContent = "Ingen faste varer ennå.";
+      ul.appendChild(li);
+      return;
+    }
+    const now = Date.now();
+    recurring.forEach((r) => {
+      const li = document.createElement("li");
+      li.className = "rec-row";
+      const elapsedDays = (now - r.lastTriggerAt) / DAY_MS;
+      const daysLeft = Math.ceil(r.intervalDays - elapsedDays);
+      const active = isActiveInList(r.name);
+      const status = active ? "På listen nå" : daysLeft <= 0 ? "Legges til snart" : `om ${daysLeft} dag${daysLeft === 1 ? "" : "er"}`;
+      li.innerHTML = `
+        <div class="rec-info">
+          <span class="item-text" style="font-size:1.05rem;">${r.name}</span>
+          <span class="rec-interval">hver ${r.intervalDays}. dag</span>
+        </div>
+        <div style="display:flex; align-items:center; gap:12px;">
+          <span class="rec-status">${status}</span>
+        </div>
+      `;
+      const btn = document.createElement("button");
+      btn.className = "plain";
+      btn.textContent = "fjern";
+      btn.addEventListener("click", () => removeRecurring(r.id));
+      li.lastElementChild.appendChild(btn);
+      ul.appendChild(li);
+    });
+  }
+
+  document.getElementById("recurringBtn").addEventListener("click", () => showPage("faste"));
+  document.getElementById("backFromRecurring").addEventListener("click", () => showPage("liste"));
+  document.getElementById("addRecurringBtn").addEventListener("click", addRecurring);
+  document.getElementById("recurringDays").addEventListener("keydown", (e) => {
+    if (e.key === "Enter") { e.preventDefault(); addRecurring(); }
+  });
 
   showPage("liste");
 
