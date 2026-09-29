@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="no">
+<html lang="no" data-theme="system">
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover" />
@@ -13,6 +13,19 @@
 <link rel="icon" href="icons/icon-192.png" />
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
+<script>
+  // Sett tema før siden tegnes, så det ikke blinker
+  (function () {
+    try {
+      var t = localStorage.getItem("handleliste-tema");
+      if (t === "light" || t === "dark" || t === "system") {
+        document.documentElement.setAttribute("data-theme", t);
+      }
+    } catch (e) {}
+  })();
+</script>
 <style>
   :root {
     --bg: #f6f1e6;
@@ -20,13 +33,66 @@
     --ink: #22322e;
     --muted: #7c7568;
     --line: #e6ddc9;
-    --teal: #2c4f49;
-    --teal-light: #3f7068;
+    --chip: #efe8d6;
+    --header: #2c4f49;
+    --on-header: #f6f1e6;
+    --sub: #cfe0da;
+    --accent: #2c4f49;
+    --accent-2: #3f7068;
+    --solid: #2c4f49;
+    --on-solid: #f6f1e6;
     --gold: #c8992e;
     --gold-soft: #e9c877;
+    --on-gold: #2c4f49;
     --brick: #a8452f;
-    --cream: #f6f1e6;
+    --overlay: rgba(34,50,46,0.55);
+    color-scheme: light;
   }
+  :root[data-theme="dark"] {
+    --bg: #0f1716;
+    --surface: #172221;
+    --ink: #ece7d9;
+    --muted: #98a39e;
+    --line: #2a3a37;
+    --chip: #213230;
+    --header: #1c3733;
+    --on-header: #f0ebdc;
+    --sub: #a9c4bc;
+    --accent: #8cc9bb;
+    --accent-2: #6fb3a3;
+    --solid: #2f5c54;
+    --on-solid: #f3eee0;
+    --gold: #d6a93e;
+    --gold-soft: #e6c46f;
+    --on-gold: #17302b;
+    --brick: #e0785f;
+    --overlay: rgba(0,0,0,0.6);
+    color-scheme: dark;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root[data-theme="system"] {
+      --bg: #0f1716;
+      --surface: #172221;
+      --ink: #ece7d9;
+      --muted: #98a39e;
+      --line: #2a3a37;
+      --chip: #213230;
+      --header: #1c3733;
+      --on-header: #f0ebdc;
+      --sub: #a9c4bc;
+      --accent: #8cc9bb;
+      --accent-2: #6fb3a3;
+      --solid: #2f5c54;
+      --on-solid: #f3eee0;
+      --gold: #d6a93e;
+      --gold-soft: #e6c46f;
+      --on-gold: #17302b;
+      --brick: #e0785f;
+      --overlay: rgba(0,0,0,0.6);
+      color-scheme: dark;
+    }
+  }
+
   * { box-sizing: border-box; }
   body {
     margin: 0;
@@ -36,6 +102,8 @@
     color: var(--ink);
     display: flex;
     justify-content: center;
+    touch-action: manipulation;
+    -webkit-tap-highlight-color: transparent;
   }
   #app {
     width: 100%;
@@ -44,23 +112,18 @@
     background: var(--surface);
     display: flex;
     flex-direction: column;
-    box-shadow: 0 0 40px rgba(44,79,73,0.08);
+    box-shadow: 0 0 40px rgba(0,0,0,0.08);
   }
 
   /* HEADER */
   header {
-    background: var(--teal);
-    color: var(--cream);
+    background: var(--header);
+    color: var(--on-header);
     padding: 28px 24px 22px;
     text-align: center;
     position: relative;
   }
-  header .logo {
-    width: 40px;
-    height: 40px;
-    margin: 0 auto 10px;
-    display: block;
-  }
+  header .logo { width: 40px; height: 40px; margin: 0 auto 10px; display: block; }
   header h1 {
     font-family: 'Fraunces', serif;
     font-weight: 500;
@@ -68,19 +131,18 @@
     letter-spacing: 0.02em;
     margin: 0;
   }
-  header .sub {
-    font-size: 12px;
-    color: #cfe0da;
-    margin-top: 4px;
-    letter-spacing: 0.03em;
+  header .sub { font-size: 12px; color: var(--sub); margin-top: 4px; letter-spacing: 0.03em; }
+  .menu-btn {
+    position: absolute; top: 14px; right: 12px;
+    background: none; color: var(--on-header);
+    padding: 8px; border-radius: 50%; line-height: 0;
   }
 
-  .page { flex: 1; display: flex; flex-direction: column; padding: 0 24px; }
+  .page { flex: 1; display: flex; flex-direction: column; padding: 0 24px 24px; }
 
-  /* INPUT ROW */
-  .row { display: flex; gap: 10px; padding-top: 22px; }
-  input[type=text] {
-    flex: 1;
+  /* INPUTS */
+  .row { display: flex; gap: 8px; padding-top: 14px; }
+  input[type=text], input[type=number], select {
     padding: 13px 16px;
     background: var(--surface);
     border: 1.5px solid var(--line);
@@ -90,8 +152,11 @@
     font-family: 'Inter', sans-serif;
     color: var(--ink);
     transition: border-color 0.2s;
+    min-width: 0;
   }
-  input[type=text]:focus { border-color: var(--teal-light); }
+  .row input[type=text], .row input[type=number] { flex: 1; }
+  input[type=text]:focus, input[type=number]:focus, select:focus { border-color: var(--accent-2); }
+  .full { width: 100%; }
 
   button {
     cursor: pointer;
@@ -102,115 +167,183 @@
     border-radius: 12px;
     letter-spacing: 0.01em;
   }
-  button.gold { background: var(--gold); color: var(--teal); padding: 13px 20px; }
-  button.gold:active { background: var(--gold-soft); }
-  button.outline-teal {
-    background: transparent;
-    color: var(--teal);
-    border: 1.5px solid var(--teal);
-    padding: 12px 16px;
+  button:disabled { opacity: 0.4; cursor: default; }
+  button.gold { background: var(--gold); color: var(--on-gold); padding: 13px 18px; }
+  button.outline-teal { background: transparent; color: var(--accent); border: 1.5px solid var(--accent); padding: 12px 16px; }
+  button.outline-brick { background: transparent; color: var(--brick); border: 1.5px solid var(--brick); padding: 12px 16px; }
+  button.solid-teal { background: var(--solid); color: var(--on-solid); padding: 13px 20px; }
+  button.solid-brick { background: var(--brick); color: #fff; padding: 12px 16px; }
+  button.plain { background: none; color: var(--muted); font-size: 12px; font-weight: 500; padding: 6px; }
+  button.plain.danger { color: var(--brick); }
+  .icon-btn {
+    width: 48px; flex-shrink: 0; border-radius: 12px; background: var(--chip); color: var(--accent);
+    display: flex; align-items: center; justify-content: center; padding: 0;
   }
-  button.outline-brick {
-    background: transparent;
-    color: var(--brick);
-    border: 1.5px solid var(--brick);
-    padding: 12px 16px;
-  }
-  button.solid-teal { background: var(--teal); color: var(--cream); padding: 13px 20px; }
-  button.plain { background: none; color: var(--muted); font-size: 12px; font-weight: 500; padding: 4px 6px; }
+  .icon-btn.listening { background: var(--gold); color: var(--on-gold); }
 
-  /* LIST */
-  ul, ol { list-style: none; margin: 18px 0 0; padding: 0; flex: 1; overflow-y: auto; }
-  li.item {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    padding: 14px 2px;
-    border-bottom: 1px solid var(--line);
-    user-select: none;
+  /* LISTEVALG */
+  .chips { display: flex; gap: 8px; overflow-x: auto; padding: 18px 0 2px; scrollbar-width: none; }
+  .chips::-webkit-scrollbar { display: none; }
+  .chip {
+    white-space: nowrap; padding: 8px 15px; border-radius: 999px;
+    background: var(--chip); color: var(--ink); font-size: 13px; font-weight: 500;
+    border: 1.5px solid transparent; flex-shrink: 0;
   }
+  .chip.active { background: var(--solid); color: var(--on-solid); }
+  .chip.add { background: none; border: 1.5px dashed var(--line); color: var(--muted); }
+
+  /* FORSLAG */
+  .suggest { display: flex; flex-wrap: wrap; gap: 8px; padding-top: 10px; }
+  .sug {
+    background: transparent; border: 1.5px solid var(--gold); color: var(--ink);
+    border-radius: 999px; padding: 6px 13px; font-size: 13px; font-weight: 500;
+  }
+
+  /* LISTE */
+  ul, ol { list-style: none; margin: 14px 0 0; padding: 0; flex: 1; }
+  li.item {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 12px 2px; border-bottom: 1px solid var(--line); gap: 8px;
+  }
+  li.cat-head {
+    font-size: 11px; letter-spacing: 0.09em; text-transform: uppercase;
+    color: var(--gold); font-weight: 600; padding: 18px 2px 4px;
+  }
+  li.cat-head.muted { color: var(--muted); }
+  .item-main { flex: 1; min-width: 0; cursor: pointer; user-select: none; -webkit-user-select: none; }
   .item-text {
     font-family: 'Fraunces', serif;
-    font-size: 1.25rem;
-    font-weight: 400;
-    display: inline-block;
-    position: relative;
-    color: var(--ink);
+    font-size: 1.25rem; font-weight: 400;
+    display: inline-block; position: relative; color: var(--ink);
+    word-break: break-word;
   }
-  .item-text.checked {
-    color: var(--muted);
-  }
+  .item-text.checked { color: var(--muted); }
   .item-text.checked::after {
-    content: "";
-    position: absolute;
-    left: -2%;
-    width: 104%;
-    top: 52%;
-    height: 1.5px;
-    background: var(--gold);
+    content: ""; position: absolute; left: -2%; width: 104%; top: 52%;
+    height: 1.5px; background: var(--gold);
   }
-  .empty { text-align: center; color: var(--muted); margin-top: 40px; font-size: 14px; font-family: 'Inter', sans-serif; }
-  .hint { font-size: 12px; color: var(--muted); text-align: center; padding: 10px 0 4px; }
-  .swipe-hint { font-size: 12px; color: var(--muted); text-align: center; margin: 18px 0 4px; }
+  .qty { font-size: 0.85rem; color: var(--gold); font-weight: 700; margin-left: 8px; }
+  .item-sub { font-size: 12px; color: var(--muted); margin-top: 2px; }
+  .item-actions { display: flex; align-items: center; flex-shrink: 0; }
+  .more-btn { background: none; color: var(--muted); padding: 8px; line-height: 0; }
+  .empty { text-align: center; color: var(--muted); margin-top: 40px; font-size: 14px; }
+  .hint { font-size: 12px; color: var(--muted); text-align: center; padding: 12px 0 4px; }
+  .swipe-hint { font-size: 12px; color: var(--muted); text-align: center; margin: 18px 0 4px; line-height: 1.5; }
 
-  .btn-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; padding: 20px 0 10px; }
+  .summary {
+    display: flex; justify-content: space-between; align-items: center;
+    padding: 12px 2px; margin-top: 8px; border-top: 1px solid var(--line);
+    font-size: 13px; color: var(--muted);
+  }
+  .summary small { display: block; font-size: 11px; margin-top: 2px; }
+  .summary strong { font-family: 'Fraunces', serif; font-size: 1.2rem; font-weight: 500; color: var(--ink); }
+  .summary.over strong, .summary.over small { color: var(--brick); }
 
+  .toolbar { display: flex; gap: 10px; padding-top: 10px; }
+  .toolbar button { flex: 1; font-size: 13px; padding: 10px; }
+  .btn-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; padding: 12px 0 0; }
+  .footer-btn { padding: 20px 0 0; }
+
+  /* MODALER */
   .modal-backdrop {
-    position: fixed; inset: 0; background: rgba(34,50,46,0.55);
-    display: flex; align-items: center; justify-content: center; padding: 24px;
-    z-index: 10;
+    position: fixed; inset: 0; background: var(--overlay);
+    display: flex; align-items: center; justify-content: center; padding: 24px; z-index: 10;
   }
-  .modal { background: var(--surface); max-width: 340px; width: 100%; border-radius: 18px; padding: 26px 24px; }
+  .modal {
+    background: var(--surface); max-width: 340px; width: 100%; border-radius: 18px;
+    padding: 26px 24px; max-height: 90vh; overflow-y: auto; color: var(--ink);
+  }
   .modal p { font-family: 'Fraunces', serif; font-size: 1.2rem; margin: 0 0 20px; color: var(--ink); }
   .modal .btn-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  .field-label { font-size: 12px; color: var(--muted); margin: 14px 0 5px; }
+  .stepper { display: flex; align-items: center; gap: 16px; }
+  .stepper button { width: 40px; height: 40px; border-radius: 10px; background: var(--chip); color: var(--ink); font-size: 20px; padding: 0; }
+  .stepper span { min-width: 26px; text-align: center; font-weight: 600; font-size: 1.1rem; }
+  .share-link-box {
+    display: flex; gap: 8px; align-items: center;
+    background: var(--bg); border: 1.5px solid var(--line); border-radius: 12px;
+    padding: 6px 8px 6px 12px; margin: 14px 0;
+  }
+  .share-link-box input { flex: 1; border: none; background: none; padding: 6px 0; font-size: 12px; color: var(--muted); }
+  .share-status { font-size: 11px; text-align: center; color: var(--accent-2); min-height: 14px; }
 
   .hidden { display: none !important; }
 
+  /* TOPP 15 */
   .top-row {
     display: flex; align-items: center; justify-content: space-between;
     padding: 14px 4px; border-bottom: 1px solid var(--line);
-    cursor: grab; transition: background 0.35s ease;
-    border-radius: 8px;
+    cursor: grab; transition: background 0.35s ease; border-radius: 8px;
   }
-  .top-row.flash { background: rgba(200,153,46,0.14); }
+  .top-row.flash { background: rgba(200,153,46,0.16); }
   .top-row .rank { color: var(--gold); margin-right: 10px; font-family: 'Inter', sans-serif; font-weight: 600; font-size: 13px; }
-  .top-row .count { font-size: 12px; color: var(--teal-light); font-family: 'Inter', sans-serif; font-weight: 500; }
+  .top-row .count { font-size: 12px; color: var(--accent-2); font-weight: 500; }
 
-  .footer-btn { padding: 20px 0; }
+  /* FASTE VARER */
+  .rec-row { display: flex; align-items: center; justify-content: space-between; padding: 13px 2px; border-bottom: 1px solid var(--line); }
+  .rec-info { display: flex; flex-direction: column; gap: 2px; }
+  .rec-interval { font-size: 12px; color: var(--muted); }
+  .rec-status { font-size: 11px; color: var(--gold); font-weight: 600; }
 
+  /* INNSTILLINGER */
+  .sec-title {
+    font-size: 11px; letter-spacing: 0.09em; text-transform: uppercase;
+    color: var(--gold); font-weight: 600; margin: 26px 0 6px;
+  }
+  .opt {
+    display: flex; justify-content: space-between; align-items: center; width: 100%;
+    text-align: left; padding: 15px 2px; background: none; border-radius: 0;
+    border-bottom: 1px solid var(--line); color: var(--ink); font-weight: 500; font-size: 15px;
+  }
+  .opt .check { color: var(--gold); font-weight: 700; visibility: hidden; }
+  .opt.selected .check { visibility: visible; }
+  .switch-row {
+    display: flex; justify-content: space-between; align-items: center; gap: 12px;
+    padding: 14px 2px; border-bottom: 1px solid var(--line); font-size: 15px; font-weight: 500; cursor: pointer;
+  }
+  .switch-row small { display: block; font-size: 12px; color: var(--muted); font-weight: 400; margin-top: 2px; }
+  input.switch {
+    appearance: none; -webkit-appearance: none; width: 46px; height: 28px; border-radius: 999px;
+    background: var(--line); position: relative; flex-shrink: 0; cursor: pointer; transition: background 0.2s;
+    border: none; padding: 0;
+  }
+  input.switch::after {
+    content: ""; position: absolute; top: 3px; left: 3px; width: 22px; height: 22px;
+    border-radius: 50%; background: #fff; transition: transform 0.2s;
+  }
+  input.switch:checked { background: var(--accent-2); }
+  input.switch:checked::after { transform: translateX(18px); }
+
+  /* TOAST */
+  .toast {
+    position: fixed; left: 50%; transform: translateX(-50%); bottom: 24px;
+    width: calc(100% - 32px); max-width: 388px; background: var(--ink); color: var(--surface);
+    border-radius: 12px; padding: 12px 14px; display: flex; justify-content: space-between;
+    align-items: center; gap: 10px; font-size: 13px; z-index: 30; box-shadow: 0 6px 24px rgba(0,0,0,0.25);
+  }
+  .toast button { background: none; color: var(--gold-soft); padding: 4px 8px; font-size: 13px; }
+
+  /* INSTALL-BANNER */
   .install-banner {
     position: sticky; bottom: 0; left: 0; right: 0;
-    background: var(--teal); color: var(--cream);
+    background: var(--header); color: var(--on-header);
     padding: 14px 20px; display: flex; align-items: center; justify-content: space-between;
     gap: 12px; font-size: 12px; z-index: 20;
   }
   .install-banner span { flex: 1; line-height: 1.5; }
   .install-banner .actions { display: flex; gap: 8px; flex-shrink: 0; }
   .install-banner button { padding: 9px 12px; font-size: 11px; border-radius: 10px; }
-  .install-banner button.install-yes { background: var(--gold); color: var(--teal); }
-  .install-banner button.install-no { background: none; border: 1px solid rgba(246,241,230,0.5); color: var(--cream); }
-
-  .manual-install {
-    text-align: center; padding-bottom: 18px;
-  }
-  .manual-install button {
-    font-size: 12px; color: var(--muted); background: none; border: none;
-    text-decoration: underline; text-underline-offset: 3px;
-  }
-
-  .rec-row {
-    display: flex; align-items: center; justify-content: space-between;
-    padding: 13px 2px; border-bottom: 1px solid var(--line);
-  }
-  .rec-row .rec-info { display: flex; flex-direction: column; gap: 2px; }
-  .rec-row .rec-interval { font-size: 12px; color: var(--muted); }
-  .rec-row .rec-status { font-size: 11px; color: var(--gold); font-weight: 600; }
+  .install-banner button.install-yes { background: var(--gold); color: var(--on-gold); }
+  .install-banner button.install-no { background: none; border: 1px solid rgba(246,241,230,0.5); color: var(--on-header); }
 </style>
 </head>
 <body>
 <div id="app">
 
   <header>
+    <button class="menu-btn" id="menuBtn" aria-label="Innstillinger">
+      <svg viewBox="0 0 24 24" width="22" height="22" fill="currentColor"><circle cx="12" cy="5" r="2"/><circle cx="12" cy="12" r="2"/><circle cx="12" cy="19" r="2"/></svg>
+    </button>
     <svg class="logo" viewBox="0 0 100 100" fill="none">
       <path d="M30 38 L38 20 M70 38 L62 20" stroke="#f6f1e6" stroke-width="5" stroke-linecap="round"/>
       <path d="M26 38 L74 38 L68 78 L32 78 Z" stroke="#f6f1e6" stroke-width="5" stroke-linejoin="round" stroke-linecap="round"/>
@@ -222,18 +355,31 @@
 
   <!-- SIDE: LISTE -->
   <div class="page" id="page-liste">
+    <div class="chips" id="listChips"></div>
+
     <div class="row">
-      <input type="text" id="itemInput" placeholder="Legg til vare..." autofocus />
+      <input type="text" id="itemInput" placeholder="Legg til vare..." autocomplete="off" autocapitalize="sentences" />
+      <button class="icon-btn" id="micBtn" aria-label="Si varer med stemmen">
+        <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5 11a7 7 0 0 0 14 0M12 18v3"/></svg>
+      </button>
       <button class="gold" id="addBtn">Legg til</button>
     </div>
+    <div class="suggest hidden" id="suggest"></div>
+
     <ul id="itemList"></ul>
     <div class="hint">Dobbeltrykk en vare for å streke den over.</div>
+
+    <div class="summary hidden" id="summary"></div>
+
+    <div class="toolbar">
+      <button class="outline-teal" id="undoBtn" disabled>Angre</button>
+      <button class="outline-teal" id="clearCheckedBtn">Fjern avkryssede</button>
+    </div>
     <div class="btn-grid">
       <button class="outline-brick" id="resetBtn">Nullstill</button>
       <button class="outline-teal" id="top15Btn">Topp 15</button>
-    </div>
-    <div class="footer-btn" style="padding-top:0;">
-      <button class="solid-teal" style="width:100%;" id="recurringBtn">Faste varer</button>
+      <button class="outline-teal" id="recurringBtn">Faste varer</button>
+      <button class="solid-teal" id="shareBtn">Del listen</button>
     </div>
   </div>
 
@@ -242,33 +388,122 @@
     <div class="swipe-hint">Sveip en vare mot høyre for å legge den til på handlelisten.</div>
     <ol id="topList"></ol>
     <div class="footer-btn">
-      <button class="solid-teal" style="width:100%;" id="backFromTop">Tilbake til listen</button>
+      <button class="solid-teal full" id="backFromTop">Tilbake til listen</button>
     </div>
   </div>
 
   <!-- SIDE: FASTE VARER -->
   <div class="page hidden" id="page-faste">
     <div class="swipe-hint">Faste varer legger seg selv til handlelisten igjen etter et gitt antall dager fra de ble krysset av eller fjernet.</div>
-    <div class="row" style="gap:8px;">
+    <div class="row">
       <input type="text" id="recurringName" placeholder="Vare, f.eks. Kattemat" style="flex:2;" />
-      <input type="number" id="recurringDays" placeholder="Dager" min="1" style="flex:1; min-width:0; padding:13px 10px;" />
+      <input type="number" id="recurringDays" placeholder="Dager" min="1" style="flex:1; padding:13px 10px;" />
     </div>
-    <button class="gold" id="addRecurringBtn" style="margin-top:10px; width:100%;">Legg til fast vare</button>
-    <ul id="recurringList" style="margin-top:8px;"></ul>
+    <button class="gold full" id="addRecurringBtn" style="margin-top:10px;">Legg til fast vare</button>
+    <div class="hint" id="recNote"></div>
+    <ul id="recurringList" style="margin-top:4px;"></ul>
     <div class="footer-btn">
-      <button class="solid-teal" style="width:100%;" id="backFromRecurring">Tilbake til listen</button>
+      <button class="solid-teal full" id="backFromRecurring">Tilbake til listen</button>
     </div>
   </div>
 
-  <!-- MODAL: BEKREFT NULLSTILL -->
+  <!-- SIDE: INNSTILLINGER -->
+  <div class="page hidden" id="page-innstillinger">
+    <div class="sec-title">Utseende</div>
+    <div id="themeOptions">
+      <button class="opt" data-theme-choice="system"><span>Telefonens standard</span><span class="check">✓</span></button>
+      <button class="opt" data-theme-choice="light"><span>Lyst</span><span class="check">✓</span></button>
+      <button class="opt" data-theme-choice="dark"><span>Mørkt</span><span class="check">✓</span></button>
+    </div>
+
+    <div class="sec-title">Skjerm og visning</div>
+    <label class="switch-row">
+      <span>Hold skjermen våken<small>Skjermen slukker ikke mens du handler.</small></span>
+      <input type="checkbox" class="switch" id="wakeToggle" />
+    </label>
+    <label class="switch-row">
+      <span>Grupper etter avdeling<small>Frukt, meieri, tørrvarer osv.</small></span>
+      <input type="checkbox" class="switch" id="groupToggle" />
+    </label>
+
+    <div class="sec-title">Budsjett</div>
+    <input type="text" inputmode="decimal" class="full" id="budgetInput" placeholder="Budsjett per liste i kr (valgfritt)" />
+
+    <div class="sec-title">Lister</div>
+    <ul id="listManage" style="margin-top:0;"></ul>
+    <button class="gold full" id="addListBtn" style="margin-top:14px;">Ny liste</button>
+
+    <div class="footer-btn">
+      <button class="solid-teal full" id="backFromSettings">Tilbake til listen</button>
+    </div>
+  </div>
+
+  <!-- MODAL: BEKREFT -->
   <div class="modal-backdrop hidden" id="confirmModal">
     <div class="modal">
-      <p>Er du sikker på at du vil slette hele listen?</p>
+      <p id="confirmText">Er du sikker?</p>
       <div class="btn-row">
-        <button class="outline-teal" id="cancelReset">Avbryt</button>
-        <button class="outline-brick" id="confirmReset" style="background:var(--brick);color:var(--cream);border-color:var(--brick);">Slett</button>
+        <button class="outline-teal" id="confirmCancel">Avbryt</button>
+        <button class="solid-brick" id="confirmOk">Slett</button>
       </div>
     </div>
+  </div>
+
+  <!-- MODAL: TEKST -->
+  <div class="modal-backdrop hidden" id="textModal">
+    <div class="modal">
+      <p id="textTitle"></p>
+      <input type="text" id="textInput" class="full" maxlength="40" style="margin-bottom:20px;" />
+      <div class="btn-row">
+        <button class="outline-teal" id="textCancel">Avbryt</button>
+        <button class="gold" id="textOk">OK</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL: VAREDETALJER -->
+  <div class="modal-backdrop hidden" id="detailModal">
+    <div class="modal">
+      <p id="detName" style="margin-bottom:4px;"></p>
+      <div class="field-label">Antall</div>
+      <div class="stepper"><button id="detMinus" aria-label="Færre">−</button><span id="detQty">1</span><button id="detPlus" aria-label="Flere">+</button></div>
+      <div class="field-label">Avdeling</div>
+      <select id="detCat" class="full"></select>
+      <div class="field-label">Pris per stk (kr)</div>
+      <input type="text" inputmode="decimal" id="detPrice" class="full" placeholder="F.eks. 29,90" />
+      <div class="field-label">Notat</div>
+      <input type="text" id="detNote" class="full" maxlength="80" placeholder="F.eks. den grønne pakken" />
+      <div class="btn-row" style="margin-top:24px;">
+        <button class="outline-teal" id="detCancel">Avbryt</button>
+        <button class="gold" id="detSave">Lagre</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL: DEL LISTEN -->
+  <div class="modal-backdrop hidden" id="shareModal">
+    <div class="modal">
+      <p>Del handlelisten din</p>
+      <div style="font-size:13px; color:var(--muted); margin-top:-14px; margin-bottom:6px;">
+        Alle som åpner lenken kan se og endre listene dine.
+      </div>
+      <div class="share-link-box">
+        <input type="text" id="shareLinkInput" readonly />
+        <button class="plain" id="copyShareBtn" style="color:var(--accent); font-weight:600;">Kopier</button>
+      </div>
+      <div class="share-status" id="shareStatus"></div>
+      <div class="btn-row" style="margin-top:14px;">
+        <button class="outline-teal" id="emailShareBtn">Send e-post</button>
+        <button class="gold" id="nativeShareBtn">Del</button>
+      </div>
+      <button class="plain" id="closeShareBtn" style="display:block; margin:14px auto 0;">Lukk</button>
+    </div>
+  </div>
+
+  <!-- TOAST -->
+  <div class="toast hidden" id="toast">
+    <span id="toastMsg"></span>
+    <button id="toastUndo">Angre</button>
   </div>
 
   <div class="install-banner hidden" id="installBanner">
@@ -283,131 +518,380 @@
 
 <script>
 (function () {
-  const KEY_ITEMS = "handleliste-items";
-  const KEY_FREQ = "handleliste-frekvens";
-  const KEY_RECURRING = "handleliste-faste-varer";
+  "use strict";
+  const $ = (id) => document.getElementById(id);
+  const DAY_MS = 24 * 60 * 60 * 1000;
 
+  const K = {
+    ITEMS: "handleliste-items",          // gammel nøkkel (kun for oppgradering)
+    LISTS: "handleliste-lister",
+    FREQ: "handleliste-frekvens",
+    REC: "handleliste-faste-varer",
+    META: "handleliste-varemeta",
+    ACTIVE: "handleliste-aktiv-liste",
+    SHARE: "handleliste-delt-id",
+    THEME: "handleliste-tema",
+    WAKE: "handleliste-vaken",
+    GROUP: "handleliste-grupper",
+    BUDGET: "handleliste-budsjett",
+  };
+
+  // --- FIREBASE-OPPSETT ---
+  // Bytt ut verdiene under med ditt eget gratis Firebase-prosjekt (Realtime Database)
+  // for at deling mellom telefoner skal fungere. Se README for fremgangsmåte.
+  const firebaseConfig = {
+    apiKey: "DIN_API_KEY",
+    authDomain: "DITT-PROSJEKT.firebaseapp.com",
+    databaseURL: "https://DITT-PROSJEKT-default-rtdb.firebaseio.com",
+    projectId: "DITT-PROSJEKT",
+  };
+
+  let db = null;
+  let cloudEnabled = false;
+  try {
+    if (firebaseConfig.apiKey && firebaseConfig.apiKey !== "DIN_API_KEY" && window.firebase) {
+      firebase.initializeApp(firebaseConfig);
+      db = firebase.database();
+      cloudEnabled = true;
+    }
+  } catch (e) {
+    console.error("Firebase kunne ikke startes", e);
+    cloudEnabled = false;
+  }
+
+  // --- HJELPERE ---
   function load(key, fallback) {
     try {
       const raw = localStorage.getItem(key);
-      return raw ? JSON.parse(raw) : fallback;
+      return raw === null ? fallback : JSON.parse(raw);
     } catch (e) { return fallback; }
   }
   function save(key, value) {
     try { localStorage.setItem(key, JSON.stringify(value)); } catch (e) {}
   }
-
-  let items = load(KEY_ITEMS, []);
-  let freq = load(KEY_FREQ, {});
-  let recurring = load(KEY_RECURRING, []); // [{id, name, intervalDays, lastTriggerAt}]
-
-  function uid() {
-    return Date.now().toString(36) + Math.random().toString(36).slice(2, 7);
+  function uid() { return Date.now().toString(36) + Math.random().toString(36).slice(2, 7); }
+  function makeShareId() { return "l" + Date.now().toString(36) + Math.random().toString(36).slice(2, 10); }
+  function capitalize(s) { return s ? s.charAt(0).toUpperCase() + s.slice(1) : s; }
+  function el(tag, cls, text) {
+    const e = document.createElement(tag);
+    if (cls) e.className = cls;
+    if (text !== undefined) e.textContent = text;
+    return e;
+  }
+  function fmtKr(n) {
+    return (Math.round(n * 100) / 100).toLocaleString("nb-NO", { maximumFractionDigits: 2 });
+  }
+  function parseNum(v) {
+    const n = parseFloat(String(v == null ? "" : v).replace(",", ".").replace(/\s/g, ""));
+    return isFinite(n) && n >= 0 ? n : null;
   }
 
-  const pages = {
-    liste: document.getElementById("page-liste"),
-    top15: document.getElementById("page-top15"),
-    faste: document.getElementById("page-faste"),
-  };
-  const subtitle = document.getElementById("subtitle");
+  // Firebase tillater ikke . $ # [ ] / i nøkler, så vi koder dem
+  function encKey(k) {
+    return k.replace(/[%.$#\[\]\/]/g, (c) => "%" + c.charCodeAt(0).toString(16).toUpperCase().padStart(2, "0"));
+  }
+  function decKey(k) {
+    return k.replace(/%([0-9A-F]{2})/g, (m, h) => String.fromCharCode(parseInt(h, 16)));
+  }
+  function mapKeys(obj, fn) {
+    const o = {};
+    Object.keys(obj || {}).forEach((k) => { o[fn(k)] = obj[k]; });
+    return o;
+  }
 
+  // --- AVDELINGER ---
+  const CATS = ["Frukt og grønt", "Kjøtt og fisk", "Meieri og egg", "Brød og bakst", "Tørrvarer", "Frysevarer", "Drikke", "Husholdning", "Annet"];
+  const KW = [
+    ["Frysevarer", ["frossen", "frosne", "fryst", "frosset", "pizza", "iskrem", "fiskepinner", "is"]],
+    ["Husholdning", ["toalettpapir", "dopapir", "do-papir", "tannkrem", "tannbørste", "såpe", "sjampo", "shampoo", "balsam", "oppvask", "vaskemiddel", "vaskepulver", "tøymykner", "søppelpose", "søppelsekk", "plastpose", "bakepapir", "folie", "kjøkkenrull", "tørkepapir", "serviett", "deodorant", "bleie", "våtserviett", "batteri", "lyspære", "kattemat", "hundemat", "kattesand", "dyremat", "barberhøvel", "plaster", "rengjøring", "zalo", "klut", "svamp", "fyrstikker", "stearinlys", "lys"]],
+    ["Drikke", ["vann", "brus", "juice", "øl", "vin", "cola", "saft", "mineralvann", "farris", "sprite", "fanta", "energidrikk", "cider", "drikke", "smoothie", "most", "alkoholfri", "tonic"]],
+    ["Meieri og egg", ["melk", "ost", "smør", "yoghurt", "yogurt", "rømme", "fløte", "egg", "margarin", "kesam", "cottage", "skyr", "brunost", "kremost", "crème fraîche", "creme fraiche", "biola", "cheasy", "havredrikk", "kefir", "mozzarella", "parmesan", "feta"]],
+    ["Tørrvarer", ["pasta", "spaghetti", "makaroni", "ris", "mel", "sukker", "havregryn", "müsli", "musli", "frokostblanding", "cornflakes", "hermetikk", "hakkede tomater", "tomatpuré", "tomatsaus", "tomatboks", "bønner", "linser", "kikerter", "olje", "eddik", "krydder", "salt", "pepper", "saus", "ketchup", "sennep", "majones", "nudler", "kaffe", "te", "kakao", "honning", "syltetøy", "sylte", "peanøttsmør", "nøtter", "mandler", "rosiner", "sjokolade", "potetgull", "chips", "snacks", "kjeks", "tunfisk", "sardiner", "buljong", "taco", "suppe", "dressing", "bakepulver", "maisenna", "couscous", "bulgur"]],
+    ["Kjøtt og fisk", ["kylling", "kjøtt", "svin", "storfe", "biff", "pølse", "bacon", "skinke", "laks", "torsk", "fisk", "reker", "karbonade", "kotelett", "lam", "kalkun", "pålegg", "sushi", "filet", "medister", "ribbe", "ørret", "hyse", "krabbe", "salami", "leverpostei"]],
+    ["Brød og bakst", ["brød", "rundstykke", "baguette", "bolle", "kneipp", "toast", "lompe", "tortilla", "wrap", "kake", "gjær", "pita", "focaccia"]],
+    ["Frukt og grønt", ["eple", "banan", "appelsin", "sitron", "lime", "drue", "pære", "tomat", "agurk", "salat", "løk", "hvitløk", "gulrot", "potet", "brokkoli", "blomkål", "kål", "paprika", "avokado", "sopp", "spinat", "squash", "ingefær", "bær", "mango", "melon", "purre", "mais", "frukt", "grønn", "urter", "basilikum", "persille", "koriander", "mynte", "selleri", "reddik", "aubergine", "chili", "søtpotet", "kiwi", "ananas", "fersken", "plomme", "clementin", "mandarin", "asparges", "erter"]],
+  ];
+  function kwMatch(word, kw) {
+    if (kw.length <= 2) return word === kw;
+    if (kw.length === 3) return word === kw || word.endsWith(kw);
+    return word.includes(kw);
+  }
+  function guessCategory(name) {
+    const n = String(name || "").toLowerCase();
+    const words = n.split(/[\s,\-\/]+/).filter(Boolean);
+    for (const [cat, kws] of KW) {
+      for (const kw of kws) {
+        if (/[ \-]/.test(kw)) { if (n.includes(kw)) return cat; }
+        else if (words.some((w) => kwMatch(w, kw))) return cat;
+      }
+    }
+    return "Annet";
+  }
+
+  // --- DATA ---
+  function toArray(x) {
+    if (!x) return [];
+    if (Array.isArray(x)) return x.filter(Boolean);
+    if (typeof x === "object") return Object.values(x).filter(Boolean);
+    return [];
+  }
+  function normalizeItem(it) {
+    const name = String(it.name || "");
+    return {
+      id: it.id || uid(),
+      name,
+      checked: !!it.checked,
+      qty: Math.max(1, parseInt(it.qty, 10) || 1),
+      cat: CATS.includes(it.cat) ? it.cat : guessCategory(name),
+      price: typeof it.price === "number" && isFinite(it.price) && it.price >= 0 ? it.price : null,
+      note: typeof it.note === "string" ? it.note : "",
+    };
+  }
+  function normalizeState(raw) {
+    raw = raw || {};
+    let lists = toArray(raw.lists).map((l) => ({
+      id: l.id || uid(),
+      name: l.name || "Liste",
+      items: toArray(l.items).map(normalizeItem).filter((i) => i.name),
+    }));
+    if (!lists.length) {
+      lists = [{ id: "main", name: "Handleliste", items: toArray(raw.items).map(normalizeItem).filter((i) => i.name) }];
+    }
+    return {
+      lists,
+      freq: raw.freq && typeof raw.freq === "object" ? raw.freq : {},
+      recurring: toArray(raw.recurring)
+        .filter((r) => r.name)
+        .map((r) => ({
+          id: r.id || uid(),
+          name: r.name,
+          intervalDays: Math.max(1, parseInt(r.intervalDays, 10) || 1),
+          lastTriggerAt: r.lastTriggerAt || Date.now(),
+          listId: r.listId || null,
+        })),
+      meta: raw.meta && typeof raw.meta === "object" ? raw.meta : {},
+    };
+  }
+  function sortObj(o) {
+    const r = {};
+    Object.keys(o || {}).sort().forEach((k) => { r[k] = o[k]; });
+    return r;
+  }
+  function stateSig(s) {
+    return JSON.stringify([s.lists, sortObj(s.freq), s.recurring, sortObj(s.meta)]);
+  }
+
+  let st = normalizeState({
+    lists: load(K.LISTS, null),
+    items: load(K.ITEMS, []),
+    freq: load(K.FREQ, {}),
+    recurring: load(K.REC, []),
+    meta: load(K.META, {}),
+  });
+  let activeListId = load(K.ACTIVE, null);
+  function ensureActive() {
+    if (!st.lists.find((l) => l.id === activeListId)) activeListId = st.lists[0].id;
+  }
+  ensureActive();
+  function curList() { return st.lists.find((l) => l.id === activeListId) || st.lists[0]; }
+
+  function saveLocal() {
+    save(K.LISTS, st.lists);
+    save(K.FREQ, st.freq);
+    save(K.REC, st.recurring);
+    save(K.META, st.meta);
+    save(K.ACTIVE, activeListId);
+  }
+
+  // --- DELT LISTE-ID ---
+  const urlParams = new URLSearchParams(window.location.search);
+  const linkId = urlParams.get("liste");
+  let shareId = localStorage.getItem(K.SHARE);
+  if (linkId && cloudEnabled && linkId !== shareId) {
+    const hasData = st.lists.some((l) => l.items.length > 0);
+    let join = true;
+    if (shareId && hasData) {
+      join = confirm("Du blir med i en delt liste. Listene på denne telefonen erstattes av den delte listen. Fortsette?");
+    }
+    if (join) {
+      shareId = linkId;
+      localStorage.setItem(K.SHARE, shareId);
+      st = normalizeState(null);
+      activeListId = st.lists[0].id;
+      saveLocal();
+    }
+  }
+  if (!shareId) {
+    shareId = makeShareId();
+    localStorage.setItem(K.SHARE, shareId);
+  }
+  if (linkId) {
+    try { history.replaceState(null, "", window.location.pathname); } catch (e) {}
+  }
+
+  // --- SKY-SYNK ---
+  function pushCloud() {
+    if (!(cloudEnabled && db)) return;
+    try {
+      const base = JSON.parse(JSON.stringify({
+        lists: st.lists,
+        freq: mapKeys(st.freq, encKey),
+        recurring: st.recurring,
+        meta: mapKeys(st.meta, encKey),
+      }));
+      base.oppdatert = firebase.database.ServerValue.TIMESTAMP;
+      db.ref("lister/" + shareId).set(base).catch((e) => console.error("Kunne ikke synkronisere", e));
+    } catch (e) { console.error(e); }
+  }
+  function syncState() { saveLocal(); pushCloud(); }
+
+  // --- ANGRE ---
+  const undoStack = [];
+  function snapshot() {
+    return JSON.stringify({ lists: st.lists, freq: st.freq, recurring: st.recurring, meta: st.meta });
+  }
+  function pushUndo() {
+    undoStack.push(snapshot());
+    if (undoStack.length > 30) undoStack.shift();
+    updateUndoBtn();
+  }
+  function updateUndoBtn() { $("undoBtn").disabled = undoStack.length === 0; }
+  function undo() {
+    const s = undoStack.pop();
+    if (!s) return;
+    st = normalizeState(JSON.parse(s));
+    ensureActive();
+    syncState();
+    hideToast();
+    refreshCurrentPage();
+    updateUndoBtn();
+  }
+
+  // --- TOAST ---
+  let toastTimer = null;
+  function showToast(msg, withUndo) {
+    $("toastMsg").textContent = msg;
+    $("toastUndo").classList.toggle("hidden", withUndo === false);
+    $("toast").classList.remove("hidden");
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(hideToast, 5000);
+  }
+  function hideToast() { $("toast").classList.add("hidden"); }
+
+  // --- SIDER ---
+  const pages = {
+    liste: $("page-liste"),
+    top15: $("page-top15"),
+    faste: $("page-faste"),
+    innstillinger: $("page-innstillinger"),
+  };
+  function currentPageName() {
+    return Object.keys(pages).find((k) => !pages[k].classList.contains("hidden")) || "liste";
+  }
   function showPage(name) {
     Object.values(pages).forEach((p) => p.classList.add("hidden"));
     pages[name].classList.remove("hidden");
     if (name === "liste") { checkRecurring(); renderItems(); }
     if (name === "top15") renderTop15();
     if (name === "faste") renderRecurring();
+    if (name === "innstillinger") renderSettings();
     updateSubtitle(name);
+    window.scrollTo(0, 0);
   }
-
+  function refreshCurrentPage() {
+    const n = currentPageName();
+    if (n === "liste") renderItems();
+    if (n === "top15") renderTop15();
+    if (n === "faste") renderRecurring();
+    if (n === "innstillinger") renderSettings();
+    updateSubtitle(n);
+  }
   function updateSubtitle(name) {
+    const sub = $("subtitle");
     if (name === "liste") {
-      const active = items.filter((i) => !i.checked).length;
-      subtitle.textContent = `${active} varer igjen`;
-    } else if (name === "top15") {
-      subtitle.textContent = "Topp 15 mest kjøpte";
-    } else {
-      subtitle.textContent = "Faste varer";
-    }
+      const list = curList();
+      const active = list.items.filter((i) => !i.checked).length;
+      sub.textContent = st.lists.length > 1 ? `${list.name} · ${active} igjen` : `${active} varer igjen`;
+    } else if (name === "top15") sub.textContent = "Topp 15 mest kjøpte";
+    else if (name === "faste") sub.textContent = "Faste varer";
+    else sub.textContent = "Innstillinger";
   }
 
-  function capitalize(str) {
-    if (!str) return str;
-    return str.charAt(0).toUpperCase() + str.slice(1);
+  // --- VARER ---
+  function makeItem(name) {
+    const meta = st.meta[name.toLowerCase()] || {};
+    return {
+      id: uid(),
+      name,
+      checked: false,
+      qty: 1,
+      cat: CATS.includes(meta.cat) ? meta.cat : guessCategory(name),
+      price: typeof meta.price === "number" ? meta.price : null,
+      note: "",
+    };
   }
-
-  function addItem(name) {
-    const trimmed = capitalize(name.trim());
-    if (!trimmed) return;
-    items.push({ id: uid(), name: trimmed, checked: false });
-    freq[trimmed] = (freq[trimmed] || 0) + 1;
-    save(KEY_ITEMS, items);
-    save(KEY_FREQ, freq);
+  function findActive(list, name) {
+    return list.items.find((i) => !i.checked && i.name.toLowerCase() === name.toLowerCase());
+  }
+  function addToList(list, name) {
+    const existing = findActive(list, name);
+    if (existing) existing.qty += 1;
+    else list.items.push(makeItem(name));
+    st.freq[name] = (st.freq[name] || 0) + 1;
+  }
+  function cleanName(s) { return capitalize(String(s || "").trim().replace(/\s+/g, " ")); }
+  function addMany(names) {
+    const clean = names.map(cleanName).filter(Boolean);
+    if (!clean.length) return 0;
+    pushUndo();
+    const list = curList();
+    clean.forEach((n) => addToList(list, n));
+    syncState();
     renderItems();
+    return clean.length;
   }
+  function addItem(raw) { return addMany([raw]); }
 
-  const DAY_MS = 24 * 60 * 60 * 1000;
-
-  function findRecurringByName(name) {
-    return recurring.find((r) => r.name.toLowerCase() === name.toLowerCase());
+  function registerConsumed(name, listId) {
+    const r = st.recurring.find((x) => x.name.toLowerCase() === name.toLowerCase() && targetListFor(x).id === listId);
+    if (r) r.lastTriggerAt = Date.now();
   }
-
-  function registerConsumed(name) {
-    const r = findRecurringByName(name);
-    if (r) {
-      r.lastTriggerAt = Date.now();
-      save(KEY_RECURRING, recurring);
-    }
-  }
-
-  function isActiveInList(name) {
-    return items.some((it) => it.name.toLowerCase() === name.toLowerCase() && !it.checked);
-  }
-
-  function checkRecurring() {
-    if (recurring.length === 0) return;
-    const now = Date.now();
-    let changed = false;
-    recurring.forEach((r) => {
-      if (isActiveInList(r.name)) return;
-      const elapsedDays = (now - r.lastTriggerAt) / DAY_MS;
-      if (elapsedDays >= r.intervalDays) {
-        items.push({ id: uid(), name: r.name, checked: false });
-        freq[r.name] = (freq[r.name] || 0) + 1;
-        changed = true;
-      }
-    });
-    if (changed) {
-      save(KEY_ITEMS, items);
-      save(KEY_FREQ, freq);
-    }
-  }
-
-  function removeItem(id) {
-    const it = items.find((i) => i.id === id);
-    if (it) registerConsumed(it.name);
-    items = items.filter((i) => i.id !== id);
-    save(KEY_ITEMS, items);
-    renderItems();
-  }
-
   function toggleChecked(id) {
-    items = items.map((it) => {
-      if (it.id !== id) return it;
-      const newChecked = !it.checked;
-      if (newChecked) registerConsumed(it.name);
-      return { ...it, checked: newChecked };
-    });
-    save(KEY_ITEMS, items);
+    const list = curList();
+    const it = list.items.find((i) => i.id === id);
+    if (!it) return;
+    pushUndo();
+    it.checked = !it.checked;
+    if (it.checked) registerConsumed(it.name, list.id);
+    syncState();
     renderItems();
+  }
+  function removeItem(id) {
+    const list = curList();
+    const it = list.items.find((i) => i.id === id);
+    if (!it) return;
+    pushUndo();
+    registerConsumed(it.name, list.id);
+    list.items = list.items.filter((i) => i.id !== id);
+    syncState();
+    renderItems();
+    showToast(`${it.name} fjernet`);
+  }
+  function clearChecked() {
+    const list = curList();
+    const n = list.items.filter((i) => i.checked).length;
+    if (!n) { showToast("Ingen avkryssede varer å fjerne", false); return; }
+    pushUndo();
+    list.items = list.items.filter((i) => !i.checked);
+    syncState();
+    renderItems();
+    showToast(n === 1 ? "1 avkrysset vare fjernet" : `${n} avkryssede varer fjernet`);
   }
 
   let lastTap = {};
   function handleItemTap(id) {
     const now = Date.now();
-    const last = lastTap[id] || 0;
-    if (now - last < 350) {
+    if (now - (lastTap[id] || 0) < 350) {
       toggleChecked(id);
       lastTap[id] = 0;
     } else {
@@ -415,80 +899,249 @@
     }
   }
 
-  function renderItems() {
-    const ul = document.getElementById("itemList");
-    ul.innerHTML = "";
-    if (items.length === 0) {
-      const li = document.createElement("li");
-      li.className = "empty";
-      li.textContent = "Listen er tom. Skriv inn en vare over.";
-      ul.appendChild(li);
-    } else {
-      items.forEach((it) => {
-        const li = document.createElement("li");
-        li.className = "item";
-        const span = document.createElement("span");
-        span.className = "item-text" + (it.checked ? " checked" : "");
-        span.textContent = it.name;
-        span.addEventListener("click", () => handleItemTap(it.id));
-        const btn = document.createElement("button");
-        btn.className = "plain";
-        btn.textContent = "fjern";
-        btn.addEventListener("click", (e) => {
-          e.stopPropagation();
-          removeItem(it.id);
-        });
-        li.appendChild(span);
-        li.appendChild(btn);
-        ul.appendChild(li);
-      });
+  // --- FASTE VARER (automatikk) ---
+  function targetListFor(r) { return st.lists.find((l) => l.id === r.listId) || st.lists[0]; }
+  function checkRecurring() {
+    if (!st.recurring.length) return;
+    const now = Date.now();
+    let changed = false;
+    st.recurring.forEach((r) => {
+      const list = targetListFor(r);
+      if (findActive(list, r.name)) return;
+      if ((now - r.lastTriggerAt) / DAY_MS >= r.intervalDays) {
+        list.items.push(makeItem(r.name));
+        st.freq[r.name] = (st.freq[r.name] || 0) + 1;
+        changed = true;
+      }
+    });
+    if (changed) syncState();
+  }
+  function addRecurring() {
+    const nameInput = $("recurringName");
+    const daysInput = $("recurringDays");
+    const name = cleanName(nameInput.value);
+    const days = parseInt(daysInput.value, 10);
+    if (!name || !days || days < 1) return;
+    const list = curList();
+    if (!st.recurring.some((r) => r.name.toLowerCase() === name.toLowerCase() && targetListFor(r).id === list.id)) {
+      st.recurring.push({ id: uid(), name, intervalDays: days, lastTriggerAt: Date.now(), listId: list.id });
+      syncState();
     }
+    nameInput.value = "";
+    daysInput.value = "";
+    renderRecurring();
+  }
+  function removeRecurring(id) {
+    st.recurring = st.recurring.filter((r) => r.id !== id);
+    syncState();
+    renderRecurring();
+  }
+
+  // --- RENDER: HOVEDLISTE ---
+  function itemLi(i) {
+    const li = el("li", "item");
+    const main = el("div", "item-main");
+    main.appendChild(el("span", "item-text" + (i.checked ? " checked" : ""), i.name));
+    if (i.qty > 1) main.appendChild(el("span", "qty", "×" + i.qty));
+    const subParts = [];
+    if (i.note) subParts.push(i.note);
+    if (i.price != null) subParts.push(i.qty > 1 ? `${fmtKr(i.price)} kr × ${i.qty}` : `${fmtKr(i.price)} kr`);
+    if (subParts.length) main.appendChild(el("div", "item-sub", subParts.join(" · ")));
+    main.addEventListener("click", () => handleItemTap(i.id));
+
+    const actions = el("div", "item-actions");
+    const more = el("button", "more-btn");
+    more.setAttribute("aria-label", "Detaljer for " + i.name);
+    more.innerHTML = '<svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor"><circle cx="5" cy="12" r="1.8"/><circle cx="12" cy="12" r="1.8"/><circle cx="19" cy="12" r="1.8"/></svg>';
+    more.addEventListener("click", (e) => { e.stopPropagation(); openDetail(i.id); });
+    const rm = el("button", "plain", "fjern");
+    rm.addEventListener("click", (e) => { e.stopPropagation(); removeItem(i.id); });
+    actions.append(more, rm);
+
+    li.append(main, actions);
+    return li;
+  }
+  function headLi(text, muted) {
+    return el("li", "cat-head" + (muted ? " muted" : ""), text);
+  }
+
+  function renderItems() {
+    const list = curList();
+    const ul = $("itemList");
+    ul.innerHTML = "";
+    if (!list.items.length) {
+      ul.appendChild(el("li", "empty", "Listen er tom. Skriv inn en vare over."));
+    } else {
+      const unchecked = list.items.filter((i) => !i.checked);
+      const checked = list.items.filter((i) => i.checked);
+      if (groupByCat) {
+        CATS.forEach((cat) => {
+          const g = unchecked.filter((i) => i.cat === cat);
+          if (g.length) {
+            ul.appendChild(headLi(cat));
+            g.forEach((i) => ul.appendChild(itemLi(i)));
+          }
+        });
+      } else {
+        unchecked.forEach((i) => ul.appendChild(itemLi(i)));
+      }
+      if (checked.length) {
+        if (unchecked.length) ul.appendChild(headLi("Avkrysset", true));
+        checked.forEach((i) => ul.appendChild(itemLi(i)));
+      }
+    }
+    renderChips();
+    renderSummary();
+    updateSuggestions();
+    updateUndoBtn();
     updateSubtitle("liste");
   }
 
-  function getTop15() {
-    return Object.entries(freq).sort((a, b) => b[1] - a[1]).slice(0, 15);
+  function renderChips() {
+    const box = $("listChips");
+    box.innerHTML = "";
+    st.lists.forEach((l) => {
+      const b = el("button", "chip" + (l.id === activeListId ? " active" : ""), l.name);
+      b.addEventListener("click", () => {
+        activeListId = l.id;
+        save(K.ACTIVE, activeListId);
+        $("itemInput").value = "";
+        checkRecurring();
+        renderItems();
+      });
+      box.appendChild(b);
+    });
+    const add = el("button", "chip add", "+ Ny liste");
+    add.addEventListener("click", newList);
+    box.appendChild(add);
   }
 
-  let swipeStartX = {};
-  function onSwipeStart(name, e) {
-    const x = e.touches ? e.touches[0].clientX : e.clientX;
-    swipeStartX[name] = x;
+  function renderSummary() {
+    const box = $("summary");
+    const items = curList().items;
+    const priced = items.filter((i) => i.price != null);
+    if (!priced.length) { box.classList.add("hidden"); return; }
+    const total = priced.reduce((s, i) => s + i.price * i.qty, 0);
+    const budget = parseNum(load(K.BUDGET, ""));
+    box.classList.remove("hidden");
+    box.classList.toggle("over", budget != null && budget > 0 && total > budget);
+    box.innerHTML = "";
+    const left = el("div");
+    left.appendChild(document.createTextNode("Estimert sum"));
+    if (budget != null && budget > 0) {
+      const diff = budget - total;
+      left.appendChild(el("small", "", diff >= 0
+        ? `Budsjett ${fmtKr(budget)} kr · ${fmtKr(diff)} kr igjen`
+        : `Budsjett ${fmtKr(budget)} kr · ${fmtKr(-diff)} kr over`));
+    }
+    box.append(left, el("strong", "", fmtKr(total) + " kr"));
   }
-  function onSwipeEnd(name, rowEl, e) {
+
+  // --- AUTOFORSLAG ---
+  function updateSuggestions() {
+    const box = $("suggest");
+    const q = $("itemInput").value.trim().toLowerCase();
+    box.innerHTML = "";
+    if (!q) { box.classList.add("hidden"); return; }
+    const pool = new Map();
+    Object.keys(st.freq).forEach((n) => pool.set(n.toLowerCase(), n));
+    st.recurring.forEach((r) => { if (!pool.has(r.name.toLowerCase())) pool.set(r.name.toLowerCase(), r.name); });
+    Object.keys(st.meta).forEach((n) => { if (!pool.has(n)) pool.set(n, capitalize(n)); });
+    const active = new Set(curList().items.filter((i) => !i.checked).map((i) => i.name.toLowerCase()));
+    const cands = [...pool.entries()]
+      .filter(([low]) => low.includes(q) && !active.has(low))
+      .sort((a, b) => {
+        const as = a[0].startsWith(q) ? 0 : 1, bs = b[0].startsWith(q) ? 0 : 1;
+        if (as !== bs) return as - bs;
+        const fd = (st.freq[b[1]] || 0) - (st.freq[a[1]] || 0);
+        return fd || a[0].localeCompare(b[0], "nb");
+      })
+      .slice(0, 5);
+    if (!cands.length) { box.classList.add("hidden"); return; }
+    cands.forEach(([, name]) => {
+      const b = el("button", "sug", name);
+      b.addEventListener("click", () => {
+        addItem(name);
+        $("itemInput").value = "";
+        updateSuggestions();
+        $("itemInput").focus();
+      });
+      box.appendChild(b);
+    });
+    box.classList.remove("hidden");
+  }
+
+  function submitInput() {
+    const input = $("itemInput");
+    const names = input.value.split(/[,;\n]+/);
+    addMany(names);
+    input.value = "";
+    updateSuggestions();
+  }
+
+  // --- STEMME ---
+  const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+  if (!SR) {
+    $("micBtn").classList.add("hidden");
+  } else {
+    let rec = null, listening = false;
+    $("micBtn").addEventListener("click", () => {
+      if (listening && rec) { rec.stop(); return; }
+      try {
+        rec = new SR();
+        rec.lang = "nb-NO";
+        rec.interimResults = false;
+        rec.maxAlternatives = 1;
+        rec.onstart = () => { listening = true; $("micBtn").classList.add("listening"); };
+        rec.onend = () => { listening = false; $("micBtn").classList.remove("listening"); };
+        rec.onerror = () => showToast("Kunne ikke bruke mikrofonen", false);
+        rec.onresult = (ev) => {
+          const text = ev.results[0][0].transcript;
+          const names = text.split(/\s*,\s*|\s+og\s+/i).map((s) => s.trim()).filter(Boolean);
+          const n = addMany(names);
+          if (n) showToast("La til: " + names.map(cleanName).join(", "));
+        };
+        rec.start();
+      } catch (e) {
+        showToast("Talegjenkjenning er ikke tilgjengelig her", false);
+      }
+    });
+  }
+
+  // --- RENDER: TOPP 15 ---
+  const swipeStartX = {};
+  function onSwipeStart(name, e) {
+    swipeStartX[name] = e.touches ? e.touches[0].clientX : e.clientX;
+  }
+  function onSwipeEnd(name, row, e) {
     const startX = swipeStartX[name];
     if (startX == null) return;
     const x = e.changedTouches ? e.changedTouches[0].clientX : e.clientX;
-    const delta = x - startX;
     swipeStartX[name] = null;
-    if (delta > 60) {
+    if (x - startX > 60) {
       addItem(name);
-      rowEl.classList.add("flash");
-      const countEl = rowEl.querySelector(".count");
-      const original = countEl.textContent;
-      countEl.textContent = "lagt til ✓";
-      setTimeout(() => {
-        rowEl.classList.remove("flash");
-        countEl.textContent = original;
-      }, 500);
+      row.classList.add("flash");
+      const c = row.querySelector(".count");
+      const original = c.textContent;
+      c.textContent = "lagt til ✓";
+      setTimeout(() => { row.classList.remove("flash"); c.textContent = original; }, 600);
     }
   }
-
   function renderTop15() {
-    const ol = document.getElementById("topList");
+    const ol = $("topList");
     ol.innerHTML = "";
-    const top = getTop15();
-    if (top.length === 0) {
-      const li = document.createElement("li");
-      li.className = "empty";
-      li.textContent = "Ingen statistikk ennå. Legg til varer på listen først.";
-      ol.appendChild(li);
+    const top = Object.entries(st.freq)
+      .sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0], "nb"))
+      .slice(0, 15);
+    if (!top.length) {
+      ol.appendChild(el("li", "empty", "Ingen statistikk ennå. Legg til varer på listen først."));
       return;
     }
     top.forEach(([name, count], idx) => {
-      const li = document.createElement("li");
-      li.className = "top-row";
-      li.innerHTML = `<span class="item-text"><span class="rank">${idx + 1}</span>${name}</span><span class="count">${count}x</span>`;
+      const li = el("li", "top-row");
+      const left = el("span", "item-text");
+      left.append(el("span", "rank", String(idx + 1)), document.createTextNode(name));
+      li.append(left, el("span", "count", count + "x"));
       li.addEventListener("touchstart", (e) => onSwipeStart(name, e), { passive: true });
       li.addEventListener("touchend", (e) => onSwipeEnd(name, li, e));
       li.addEventListener("mousedown", (e) => onSwipeStart(name, e));
@@ -497,128 +1150,351 @@
     });
   }
 
-  const itemInput = document.getElementById("itemInput");
-  document.getElementById("addBtn").addEventListener("click", () => {
-    addItem(itemInput.value);
-    itemInput.value = "";
-  });
-  itemInput.addEventListener("keydown", (e) => {
-    if (e.key === "Enter") {
-      e.preventDefault();
-      addItem(itemInput.value);
-      itemInput.value = "";
-    }
-  });
-
-  document.getElementById("resetBtn").addEventListener("click", () => {
-    document.getElementById("confirmModal").classList.remove("hidden");
-  });
-  document.getElementById("cancelReset").addEventListener("click", () => {
-    document.getElementById("confirmModal").classList.add("hidden");
-  });
-  document.getElementById("confirmReset").addEventListener("click", () => {
-    items = [];
-    save(KEY_ITEMS, items);
-    document.getElementById("confirmModal").classList.add("hidden");
-    renderItems();
-  });
-
-  document.getElementById("top15Btn").addEventListener("click", () => showPage("top15"));
-  document.getElementById("backFromTop").addEventListener("click", () => showPage("liste"));
-
-  function addRecurring() {
-    const nameInput = document.getElementById("recurringName");
-    const daysInput = document.getElementById("recurringDays");
-    const name = capitalize(nameInput.value.trim());
-    const days = parseInt(daysInput.value, 10);
-    if (!name || !days || days < 1) return;
-    if (findRecurringByName(name)) {
-      nameInput.value = "";
-      daysInput.value = "";
-      return;
-    }
-    recurring.push({ id: uid(), name, intervalDays: days, lastTriggerAt: Date.now() });
-    save(KEY_RECURRING, recurring);
-    nameInput.value = "";
-    daysInput.value = "";
-    renderRecurring();
-  }
-
-  function removeRecurring(id) {
-    recurring = recurring.filter((r) => r.id !== id);
-    save(KEY_RECURRING, recurring);
-    renderRecurring();
-  }
-
+  // --- RENDER: FASTE VARER ---
   function renderRecurring() {
-    const ul = document.getElementById("recurringList");
+    const ul = $("recurringList");
     ul.innerHTML = "";
-    if (recurring.length === 0) {
-      const li = document.createElement("li");
-      li.className = "empty";
-      li.textContent = "Ingen faste varer ennå.";
-      ul.appendChild(li);
+    $("recNote").textContent = `Ny fast vare legges til på «${curList().name}».`;
+    if (!st.recurring.length) {
+      ul.appendChild(el("li", "empty", "Ingen faste varer ennå."));
       return;
     }
     const now = Date.now();
-    recurring.forEach((r) => {
-      const li = document.createElement("li");
-      li.className = "rec-row";
-      const elapsedDays = (now - r.lastTriggerAt) / DAY_MS;
-      const daysLeft = Math.ceil(r.intervalDays - elapsedDays);
-      const active = isActiveInList(r.name);
+    st.recurring.forEach((r) => {
+      const list = targetListFor(r);
+      const li = el("li", "rec-row");
+      const info = el("div", "rec-info");
+      const nm = el("span", "item-text", r.name);
+      nm.style.fontSize = "1.05rem";
+      info.append(nm, el("span", "rec-interval", `hver ${r.intervalDays}. dag` + (st.lists.length > 1 ? ` · ${list.name}` : "")));
+      const right = el("div");
+      right.style.cssText = "display:flex;align-items:center;gap:12px";
+      const active = !!findActive(list, r.name);
+      const daysLeft = Math.ceil(r.intervalDays - (now - r.lastTriggerAt) / DAY_MS);
       const status = active ? "På listen nå" : daysLeft <= 0 ? "Legges til snart" : `om ${daysLeft} dag${daysLeft === 1 ? "" : "er"}`;
-      li.innerHTML = `
-        <div class="rec-info">
-          <span class="item-text" style="font-size:1.05rem;">${r.name}</span>
-          <span class="rec-interval">hver ${r.intervalDays}. dag</span>
-        </div>
-        <div style="display:flex; align-items:center; gap:12px;">
-          <span class="rec-status">${status}</span>
-        </div>
-      `;
-      const btn = document.createElement("button");
-      btn.className = "plain";
-      btn.textContent = "fjern";
+      right.appendChild(el("span", "rec-status", status));
+      const btn = el("button", "plain", "fjern");
       btn.addEventListener("click", () => removeRecurring(r.id));
-      li.lastElementChild.appendChild(btn);
+      right.appendChild(btn);
+      li.append(info, right);
       ul.appendChild(li);
     });
   }
 
-  document.getElementById("recurringBtn").addEventListener("click", () => showPage("faste"));
-  document.getElementById("backFromRecurring").addEventListener("click", () => showPage("liste"));
-  document.getElementById("addRecurringBtn").addEventListener("click", addRecurring);
-  document.getElementById("recurringDays").addEventListener("keydown", (e) => {
+  // --- MODALER ---
+  let confirmResolver = null;
+  function confirmDialog(text, okLabel) {
+    return new Promise((res) => {
+      $("confirmText").textContent = text;
+      $("confirmOk").textContent = okLabel || "Slett";
+      confirmResolver = res;
+      $("confirmModal").classList.remove("hidden");
+    });
+  }
+  function closeConfirm(v) {
+    $("confirmModal").classList.add("hidden");
+    if (confirmResolver) { const r = confirmResolver; confirmResolver = null; r(v); }
+  }
+  $("confirmCancel").addEventListener("click", () => closeConfirm(false));
+  $("confirmOk").addEventListener("click", () => closeConfirm(true));
+
+  let textResolver = null;
+  function askText(title, initial) {
+    return new Promise((res) => {
+      $("textTitle").textContent = title;
+      $("textInput").value = initial || "";
+      textResolver = res;
+      $("textModal").classList.remove("hidden");
+      setTimeout(() => $("textInput").focus(), 50);
+    });
+  }
+  function closeText(v) {
+    $("textModal").classList.add("hidden");
+    if (textResolver) { const r = textResolver; textResolver = null; r(v); }
+  }
+  $("textCancel").addEventListener("click", () => closeText(null));
+  $("textOk").addEventListener("click", () => closeText($("textInput").value.trim() || null));
+  $("textInput").addEventListener("keydown", (e) => {
+    if (e.key === "Enter") { e.preventDefault(); closeText($("textInput").value.trim() || null); }
+  });
+
+  // --- VAREDETALJER ---
+  let detailId = null, detQtyVal = 1;
+  CATS.forEach((c) => { const o = document.createElement("option"); o.value = c; o.textContent = c; $("detCat").appendChild(o); });
+  function openDetail(id) {
+    const it = curList().items.find((i) => i.id === id);
+    if (!it) return;
+    detailId = id;
+    detQtyVal = it.qty;
+    $("detName").textContent = it.name;
+    $("detQty").textContent = detQtyVal;
+    $("detCat").value = it.cat;
+    $("detPrice").value = it.price != null ? String(it.price).replace(".", ",") : "";
+    $("detNote").value = it.note || "";
+    $("detailModal").classList.remove("hidden");
+  }
+  $("detMinus").addEventListener("click", () => { detQtyVal = Math.max(1, detQtyVal - 1); $("detQty").textContent = detQtyVal; });
+  $("detPlus").addEventListener("click", () => { detQtyVal = Math.min(99, detQtyVal + 1); $("detQty").textContent = detQtyVal; });
+  $("detCancel").addEventListener("click", () => { $("detailModal").classList.add("hidden"); detailId = null; });
+  $("detSave").addEventListener("click", () => {
+    const it = curList().items.find((i) => i.id === detailId);
+    $("detailModal").classList.add("hidden");
+    if (!it) return;
+    pushUndo();
+    it.qty = detQtyVal;
+    it.cat = $("detCat").value;
+    it.price = parseNum($("detPrice").value);
+    it.note = $("detNote").value.trim();
+    st.meta[it.name.toLowerCase()] = { cat: it.cat, price: it.price };
+    detailId = null;
+    syncState();
+    renderItems();
+  });
+
+  // --- LISTER ---
+  async function newList() {
+    const name = await askText("Navn på ny liste", "");
+    if (!name) return;
+    pushUndo();
+    const l = { id: uid(), name: capitalize(name), items: [] };
+    st.lists.push(l);
+    activeListId = l.id;
+    syncState();
+    refreshCurrentPage();
+    if (currentPageName() !== "liste") showPage("liste");
+  }
+  async function renameList(l) {
+    const name = await askText("Nytt navn på listen", l.name);
+    if (!name) return;
+    pushUndo();
+    l.name = capitalize(name);
+    syncState();
+    renderSettings();
+  }
+  async function deleteList(l) {
+    if (st.lists.length <= 1) return;
+    const ok = await confirmDialog(`Slette listen «${l.name}» med alle varene?`, "Slett");
+    if (!ok) return;
+    pushUndo();
+    st.lists = st.lists.filter((x) => x.id !== l.id);
+    ensureActive();
+    syncState();
+    renderSettings();
+    showToast(`Listen «${l.name}» er slettet`);
+  }
+
+  // --- INNSTILLINGER ---
+  let themeChoice = "system";
+  try { themeChoice = localStorage.getItem(K.THEME) || "system"; } catch (e) {}
+  if (!["system", "light", "dark"].includes(themeChoice)) themeChoice = "system";
+  let wakeEnabled = load(K.WAKE, true) !== false;
+  let groupByCat = load(K.GROUP, true) !== false;
+
+  const darkQuery = window.matchMedia ? window.matchMedia("(prefers-color-scheme: dark)") : null;
+  function applyTheme() {
+    document.documentElement.setAttribute("data-theme", themeChoice);
+    const dark = themeChoice === "dark" || (themeChoice === "system" && darkQuery && darkQuery.matches);
+    const meta = document.querySelector('meta[name="theme-color"]');
+    if (meta) meta.setAttribute("content", dark ? "#1c3733" : "#2c4f49");
+  }
+  if (darkQuery && darkQuery.addEventListener) darkQuery.addEventListener("change", applyTheme);
+
+  function renderSettings() {
+    document.querySelectorAll("#themeOptions .opt").forEach((b) => {
+      b.classList.toggle("selected", b.getAttribute("data-theme-choice") === themeChoice);
+    });
+    $("wakeToggle").checked = wakeEnabled;
+    $("groupToggle").checked = groupByCat;
+    const b = load(K.BUDGET, "");
+    if (document.activeElement !== $("budgetInput")) $("budgetInput").value = b || "";
+    const ul = $("listManage");
+    ul.innerHTML = "";
+    st.lists.forEach((l) => {
+      const li = el("li", "item");
+      const nm = el("span", "item-text", l.name);
+      nm.style.fontSize = "1.1rem";
+      const actions = el("div", "item-actions");
+      const rn = el("button", "plain", "nytt navn");
+      rn.addEventListener("click", () => renameList(l));
+      actions.appendChild(rn);
+      if (st.lists.length > 1) {
+        const del = el("button", "plain danger", "slett");
+        del.addEventListener("click", () => deleteList(l));
+        actions.appendChild(del);
+      }
+      li.append(nm, actions);
+      ul.appendChild(li);
+    });
+  }
+  document.querySelectorAll("#themeOptions .opt").forEach((b) => {
+    b.addEventListener("click", () => {
+      themeChoice = b.getAttribute("data-theme-choice");
+      try { localStorage.setItem(K.THEME, themeChoice); } catch (e) {}
+      applyTheme();
+      renderSettings();
+    });
+  });
+  $("wakeToggle").addEventListener("change", (e) => {
+    wakeEnabled = e.target.checked;
+    save(K.WAKE, wakeEnabled);
+    applyWake();
+  });
+  $("groupToggle").addEventListener("change", (e) => {
+    groupByCat = e.target.checked;
+    save(K.GROUP, groupByCat);
+  });
+  $("budgetInput").addEventListener("input", (e) => {
+    save(K.BUDGET, e.target.value.trim());
+  });
+  $("addListBtn").addEventListener("click", newList);
+  $("backFromSettings").addEventListener("click", () => showPage("liste"));
+
+  // --- SKJERM VÅKEN ---
+  let wakeLock = null;
+  async function applyWake() {
+    try {
+      if (!("wakeLock" in navigator)) return;
+      if (wakeEnabled && document.visibilityState === "visible") {
+        if (!wakeLock) {
+          wakeLock = await navigator.wakeLock.request("screen");
+          wakeLock.addEventListener("release", () => { wakeLock = null; });
+        }
+      } else if (wakeLock) {
+        await wakeLock.release();
+        wakeLock = null;
+      }
+    } catch (e) { wakeLock = null; }
+  }
+  document.addEventListener("visibilitychange", () => {
+    applyWake();
+    if (document.visibilityState === "visible" && currentPageName() === "liste") {
+      checkRecurring();
+      renderItems();
+    }
+  });
+
+  // --- KNAPPER ---
+  $("menuBtn").addEventListener("click", () => showPage("innstillinger"));
+  $("addBtn").addEventListener("click", submitInput);
+  $("itemInput").addEventListener("input", updateSuggestions);
+  $("itemInput").addEventListener("keydown", (e) => {
+    if (e.key === "Enter") { e.preventDefault(); submitInput(); }
+  });
+  $("undoBtn").addEventListener("click", undo);
+  $("toastUndo").addEventListener("click", undo);
+  $("clearCheckedBtn").addEventListener("click", clearChecked);
+  $("resetBtn").addEventListener("click", async () => {
+    const list = curList();
+    if (!list.items.length) return;
+    const ok = await confirmDialog("Er du sikker på at du vil slette hele listen?", "Slett");
+    if (!ok) return;
+    pushUndo();
+    list.items = [];
+    syncState();
+    renderItems();
+    showToast("Listen er tømt");
+  });
+  $("top15Btn").addEventListener("click", () => showPage("top15"));
+  $("backFromTop").addEventListener("click", () => showPage("liste"));
+  $("recurringBtn").addEventListener("click", () => showPage("faste"));
+  $("backFromRecurring").addEventListener("click", () => showPage("liste"));
+  $("addRecurringBtn").addEventListener("click", addRecurring);
+  $("recurringDays").addEventListener("keydown", (e) => {
     if (e.key === "Enter") { e.preventDefault(); addRecurring(); }
   });
 
-  showPage("liste");
+  // --- DELING ---
+  function getShareUrl() {
+    const url = new URL(window.location.href);
+    url.search = "";
+    url.hash = "";
+    url.searchParams.set("liste", shareId);
+    return url.toString();
+  }
+  const shareModal = $("shareModal");
+  const shareLinkInput = $("shareLinkInput");
+  const shareStatus = $("shareStatus");
+  $("shareBtn").addEventListener("click", () => {
+    if (!cloudEnabled) {
+      alert("Deling er ikke satt opp ennå. Se README for hvordan du kobler til gratis Firebase-lagring.");
+      return;
+    }
+    shareLinkInput.value = getShareUrl();
+    shareStatus.textContent = "";
+    shareModal.classList.remove("hidden");
+  });
+  $("closeShareBtn").addEventListener("click", () => shareModal.classList.add("hidden"));
+  $("copyShareBtn").addEventListener("click", async () => {
+    try {
+      await navigator.clipboard.writeText(shareLinkInput.value);
+    } catch (e) {
+      shareLinkInput.select();
+      document.execCommand("copy");
+    }
+    shareStatus.textContent = "Lenke kopiert!";
+  });
+  $("emailShareBtn").addEventListener("click", () => {
+    const subject = encodeURIComponent("Bli med på handlelisten min");
+    const body = encodeURIComponent(
+      "Hei!\n\nJeg vil dele handlelisten min med deg, slik at vi begge kan legge til og krysse av varer.\n\nÅpne denne lenken på telefonen din:\n" +
+      getShareUrl() + "\n\nHilsen"
+    );
+    window.location.href = `mailto:?subject=${subject}&body=${body}`;
+  });
+  $("nativeShareBtn").addEventListener("click", async () => {
+    const url = getShareUrl();
+    if (navigator.share) {
+      try { await navigator.share({ title: "Handleliste", text: "Bli med på handlelisten min:", url }); } catch (e) {}
+    } else {
+      try {
+        await navigator.clipboard.writeText(url);
+        shareStatus.textContent = "Lenke kopiert! Lim den inn der du vil sende den.";
+      } catch (e) {
+        shareStatus.textContent = "Kopier lenken manuelt over.";
+      }
+    }
+  });
 
-  if ("serviceWorker" in navigator) {
-    window.addEventListener("load", () => {
-      navigator.serviceWorker.register("sw.js").catch(() => {});
+  // --- LYTT PÅ SKYEN ---
+  if (cloudEnabled && db) {
+    let initialPushDone = false;
+    db.ref("lister/" + shareId).on("value", (snap) => {
+      const data = snap.val();
+      if (!data) {
+        if (!initialPushDone) { initialPushDone = true; pushCloud(); }
+        return;
+      }
+      const next = normalizeState({
+        lists: data.lists,
+        items: data.items,
+        freq: mapKeys(data.freq || {}, decKey),
+        recurring: data.recurring,
+        meta: mapKeys(data.meta || {}, decKey),
+      });
+      if (stateSig(next) === stateSig(st)) return;
+      st = next;
+      undoStack.length = 0;
+      ensureActive();
+      saveLocal();
+      refreshCurrentPage();
+      updateUndoBtn();
     });
   }
 
-  const installBanner = document.getElementById("installBanner");
-  const installText = document.getElementById("installText");
-  const installBtn = document.getElementById("installBtn");
-  const installDismiss = document.getElementById("installDismiss");
-
+  // --- INSTALLASJON SOM APP ---
+  const installBanner = $("installBanner");
+  const installText = $("installText");
+  const installBtn = $("installBtn");
   const isStandalone =
-    window.matchMedia("(display-mode: standalone)").matches ||
+    (window.matchMedia && window.matchMedia("(display-mode: standalone)").matches) ||
     window.navigator.standalone === true;
-  const ua = navigator.userAgent.toLowerCase();
-  const isIOS = /iphone|ipad|ipod/.test(ua);
-
+  const isIOS = /iphone|ipad|ipod/.test(navigator.userAgent.toLowerCase());
   let deferredPrompt = null;
 
   function showInstallBanner(mode) {
     if (isStandalone) return;
     if (mode === "ios") {
-      installText.textContent =
-        "Legg til Handleliste på hjem-skjermen: trykk Del-ikonet nederst, og velg \"Legg til på Hjem-skjerm\".";
+      installText.textContent = "Legg til Handleliste på hjem-skjermen: trykk Del-ikonet nederst, og velg \"Legg til på Hjem-skjerm\".";
       installBtn.classList.add("hidden");
     } else {
       installText.textContent = "Installer Handleliste som app på telefonen din?";
@@ -626,7 +1502,6 @@
     }
     installBanner.classList.remove("hidden");
   }
-
   if (!isStandalone) {
     if (isIOS) {
       setTimeout(() => showInstallBanner("ios"), 500);
@@ -638,7 +1513,6 @@
       });
     }
   }
-
   installBtn.addEventListener("click", async () => {
     installBanner.classList.add("hidden");
     if (deferredPrompt) {
@@ -647,14 +1521,23 @@
       deferredPrompt = null;
     }
   });
+  $("installDismiss").addEventListener("click", () => installBanner.classList.add("hidden"));
+  window.addEventListener("appinstalled", () => installBanner.classList.add("hidden"));
 
-  installDismiss.addEventListener("click", () => {
-    installBanner.classList.add("hidden");
-  });
+  // --- START ---
+  applyTheme();
+  saveLocal();
+  showPage("liste");
+  applyWake();
 
-  window.addEventListener("appinstalled", () => {
-    installBanner.classList.add("hidden");
-  });
+  if ("serviceWorker" in navigator) {
+    window.addEventListener("load", () => {
+      navigator.serviceWorker.register("sw.js").catch(() => {});
+    });
+  }
+
+  // Gjør noen funksjoner tilgjengelige for testing
+  window.__hl = { guessCategory, normalizeState, encKey, decKey };
 })();
 </script>
 </body>
