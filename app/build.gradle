@@ -1,0 +1,59 @@
+plugins {
+    id 'com.android.application'
+}
+
+// Byggnummeret fra GitHub brukes som versjonskode, så hver ny versjon kan oppdatere den forrige
+def runNumber = (System.getenv("GITHUB_RUN_NUMBER") ?: "1").toInteger()
+
+android {
+    namespace 'no.handleliste.app'
+    compileSdk 36
+
+    defaultConfig {
+        applicationId "no.handleliste.app"
+        minSdk 24
+        targetSdk 36
+        versionCode runNumber
+        versionName "1.0"
+    }
+
+    signingConfigs {
+        release {
+            // I GitHub Actions kommer opplastingsnøkkelen (Play) fra Secrets via miljøvariabler.
+            // Uten dem brukes den lokale sideload-nøkkelen, slik at bygget alltid fungerer.
+            def upKeystore = System.getenv("UPLOAD_KEYSTORE")
+            if (upKeystore) {
+                storeFile file(upKeystore)
+                storePassword System.getenv("UPLOAD_STORE_PASSWORD")
+                keyAlias System.getenv("UPLOAD_KEY_ALIAS")
+                keyPassword System.getenv("UPLOAD_KEY_PASSWORD")
+            } else {
+                storeFile file("handleliste.jks")
+                storePassword "handleliste"
+                keyAlias "handleliste"
+                keyPassword "handleliste"
+            }
+        }
+    }
+
+    buildTypes {
+        release {
+            minifyEnabled false
+            signingConfig signingConfigs.release
+        }
+    }
+
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_17
+        targetCompatibility JavaVersion.VERSION_17
+    }
+
+    lint {
+        checkReleaseBuilds false
+        abortOnError false
+    }
+}
+
+dependencies {
+    implementation 'androidx.webkit:webkit:1.14.0'
+}
